@@ -1,0 +1,28 @@
+{
+    "name": "user",
+    "version": "1.0.0",
+    "main": "index.js",
+    "dependencies": {
+        "koa": "latest",
+        "koa-json": "latest",
+        "koa-logger": "latest",
+        "koa-router": "latest",
+        "mysql2": "latest",
+        "oauth2-server": "latest",
+        "sequelize": "latest",
+        "statuses": "latest"
+    },
+    "devDependencies": {
+        "@types/koa": "latest",
+        "@types/koa-json": "latest",
+        "@types/koa-logger": "latest",
+        "@types/koa-router": "latest",
+        "@types/oauth2-server": "latest",
+        "@types/sequelize": "latest",
+        "mocha": "latest",
+        "supertest": "latest"
+    },
+    "scripts": {
+        "start": "cross-env NODE_ENV=development DEBUG=*,-sequelize:*,-koa:* node index.js"
+    }
+}

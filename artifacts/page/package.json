@@ -1,0 +1,11 @@
+{
+    "name": "page",
+    "version": "1.0.0",
+    "dependencies": {
+        "mysql2": "latest",
+        "express": "latest"
+    },
+    "scripts": {
+        "start": "node index.js"
+    }
+}

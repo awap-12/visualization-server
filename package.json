@@ -1,0 +1,21 @@
+{
+    "name": "server",
+    "version": "1.0.0",
+    "dependencies": {
+        "debug": "latest",
+        "http-proxy": "latest",
+        "json-socket": "latest",
+        "minimist": "latest",
+        "member-a": "file:artifacts/member-a",
+        "member-b": "file:artifacts/member-b",
+        "serve": "file:artifacts/serve",
+        "user": "file:artifacts/user",
+        "page": "file:artifacts/page"
+    },
+    "devDependencies": {
+        "cross-env": "latest"
+    },
+    "scripts": {
+        "start": "cross-env DEBUG=*,-sequelize:*,-koa:* node bin/www"
+    }
+}
