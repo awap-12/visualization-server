@@ -1,18 +1,15 @@
-const Koa = require("koa");
-const serve = require("koa-static");
-const compress = require("koa-compress");
-const mount = require("koa-mount");
+const express = require("express");
+const compression = require("compression");
 const path = require("node:path");
 const cluster = require("node:cluster");
 
 module.exports = port => {
     if (cluster.isSpawn) {
-        const app = new Koa();
+        const app = new express();
 
-        app.use(serve(path.resolve(__dirname, "..", "view/build")));
-        app.use(mount("/dataset", serve(path.resolve(__dirname, "static"))));
+        app.use(compression());
 
-        app.use(compress());
+        app.use("/dataset", express.static(path.resolve(__dirname, "static")));
 
         app.listen(port);
     }
