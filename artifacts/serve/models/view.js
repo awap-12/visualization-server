@@ -44,7 +44,7 @@ module.exports = sequelize => {
                 if (instance.id?.includes("default")) return;
                 let result = null, flag = null;
                 while (flag === null) {
-                    flag = instance.findByPk((result = base62(6)))
+                    flag = View.findByPk((result = base62(6)))
                 }
                 instance.setDataValue("id", result);
             },
@@ -53,7 +53,7 @@ module.exports = sequelize => {
                     if (instance.id?.includes("default")) break;
                     let result = null, flag = null;
                     while (flag === null) {
-                        flag = instance.findByPk((result = base62(6)))
+                        flag = View.findByPk((result = base62(6)))
                     }
                     instance.setDataValue("id", result);
                 }

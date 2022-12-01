@@ -18,6 +18,7 @@
         "supertest": "latest"
     },
     "scripts": {
-        "start:serve": "cross-env NODE_ENV=development DEBUG=*,-sequelize:*,-express:* node index.js"
+        "start:serve": "cross-env NODE_ENV=development DEBUG=*,-sequelize:*,-express:* node index.js",
+        "test:serve": "cross-env NODE_ENV=development mocha test/*.js"
     }
 }

@@ -18,7 +18,7 @@ async function collect(ref, root) {
     }
     let fileNames = await fs.readdir(root);
     for (const fileName of fileNames) {
-        await collect(path.join(root, fileName));
+        await collect(ref, path.join(root, fileName));
     }
 }
 
@@ -31,7 +31,7 @@ module.exports = async () => {
             id: folderName,
             name: `v${i}`,
             description: description[`v${i}`],
-            files: files[`v${i}`].map(value => path.posix.join("/static", value))
+            files: files.map(value => path.posix.join("/static", value))
         }
         debug("inject %o", view);
         views.push(view);
