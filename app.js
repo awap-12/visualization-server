@@ -1,14 +1,14 @@
 const debug = require("debug")("server");
+const config = require("./config/server.js");
 const thread = require("./thread.js")(__filename);
 const cluster = require("node:cluster");
-const config = require("./config/server");
 
 if (cluster.isMain) {
     const mysql = require("mysql2");
 
     const databaseConfig  = require("./config/database");
     const modelConfig = require("./config/model");
-    const sequelize = require("./handles/model");
+    const instance = require("./handles/model");
 
     const { host, user, password, database } = databaseConfig;
 
@@ -16,9 +16,9 @@ if (cluster.isMain) {
 
     connection.query(`create schema if not exists ${database}`, err => {
         if (!!err) process.exit(err.errno);
-        sequelize.sync({ force: true }).then(() => {
+        instance.sync({ force: true }).then(() => {
             // build relation
-            modelConfig(sequelize);
+            modelConfig(instance);
             // broadcast event
             cluster.sendEvent("syncDatabaseReady");
         });
