@@ -1,4 +1,3 @@
-const {or} = require("sequelize");
 const { View } = require("./model").models;
 
 /**

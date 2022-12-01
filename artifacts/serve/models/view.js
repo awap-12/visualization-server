@@ -41,6 +41,7 @@ module.exports = sequelize => {
         timestamps: false,
         hooks: {
             beforeCreate(instance) {
+                if (instance.id?.includes("default")) return;
                 let result = null, flag = null;
                 while (flag === null) {
                     flag = instance.findByPk((result = base62(6)))
@@ -49,6 +50,7 @@ module.exports = sequelize => {
             },
             beforeBulkCreate(instances) {
                 for (const instance of instances) {
+                    if (instance.id?.includes("default")) break;
                     let result = null, flag = null;
                     while (flag === null) {
                         flag = instance.findByPk((result = base62(6)))
