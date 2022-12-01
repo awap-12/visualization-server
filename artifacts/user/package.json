@@ -3,26 +3,33 @@
     "version": "1.0.0",
     "main": "index.js",
     "dependencies": {
+        "debug": "latest",
         "koa": "latest",
-        "koa-json": "latest",
+        "koa-bodyparser": "latest",
         "koa-logger": "latest",
         "koa-router": "latest",
+        "koa-static": "latest",
+        "koa-view": "latest",
         "mysql2": "latest",
+        "nunjucks": "latest",
         "oauth2-server": "latest",
         "sequelize": "latest",
         "statuses": "latest"
     },
     "devDependencies": {
         "@types/koa": "latest",
-        "@types/koa-json": "latest",
+        "@types/koa-bodyparser": "latest",
         "@types/koa-logger": "latest",
         "@types/koa-router": "latest",
+        "@types/koa-send": "latest",
+        "@types/koa-static": "latest",
         "@types/oauth2-server": "latest",
         "@types/sequelize": "latest",
         "mocha": "latest",
         "supertest": "latest"
     },
     "scripts": {
-        "start": "cross-env NODE_ENV=development DEBUG=*,-sequelize:*,-koa:* node index.js"
+        "start:user": "cross-env NODE_ENV=development DEBUG=*,-sequelize:*,-koa:* node index.js",
+        "test:user": "cross-env NODE_ENV=development mocha test/*.js"
     }
 }

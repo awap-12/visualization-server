@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="{{ basePath }}/css/panel.css">
+    <link rel="stylesheet" type="text/css" href="{{ basePath }}/css/image.css">
+    <script src="{{ basePath }}/js/image.js" defer></script>
+</head>
+<body style="margin: 0">
+<div class="background" data-large="{{ image.large }}">
+    <img src="{{ image.small }}" class="small" alt="Background">
+</div>
+<main class="panel">
+    <div class="panel-title">Visualization</div>
+    <form id="panel-input">
+        <div class="account">
+            <span>Account</span>
+            <input type="text" name="name" placeholder="username" autocomplete="off" maxlength="16" spellcheck="false">
+        </div>
+        <div class="password">
+            <div class="left">
+                <span>Password</span>
+                <input type="password" name="password" placeholder="password" autocomplete="off" maxlength="45" spellcheck="false">
+            </div>
+            <span class="forget">fogot?</span>
+        </div>
+    </form>
+    <div class="panel-login">
+        <div class="register" data-path="{{ basePath }}">Register</div>
+        <div class="login" data-path="{{ basePath }}" data-query="{{ query }}">Login</div></div>
+    <div class="panel-third">
+        <div class="title">Third-party</div>
+        <div class="sns"><span class="github">Github</span><span class="google">Google</span></div>
+    </div>
+</main>
+</body>
+<script defer>
+    const registerElement = document.querySelector(".panel-login .register");
+    const loginElement = document.querySelector(".panel-login .login");
+    const loginInputElement = document.querySelector("#panel-input .password input");
+
+    function submitInfo(target = "") {
+        fetch(`{{ basePath }}${target}`, {
+            method: "POST",
+            body: new URLSearchParams(new FormData(document.getElementById("panel-input"))),
+            redirect: "follow"
+        }).then(raw => raw.json()).then(result => {
+            if (!result) return;
+            console.log(result);
+        });
+    }
+
+    registerElement.addEventListener("click", () => {
+        submitInfo("/register");
+    });
+    loginElement.addEventListener("click", () => {
+        submitInfo(`/oauth/authorize?{{ query }}`);
+    });
+    loginInputElement.addEventListener("keypress", event => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            loginElement.click();
+        }
+    });
+
+</script>
+</html>
