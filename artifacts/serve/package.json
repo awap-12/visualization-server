@@ -3,7 +3,21 @@
     "version": "1.0.0",
     "main": "index.js",
     "dependencies": {
+        "compression": "latest",
         "express": "latest",
-        "compression": "latest"
+        "multer": "latest",
+        "mysql2": "latest",
+        "sequelize": "latest"
+    },
+    "devDependencies": {
+        "@types/compression": "latest",
+        "@types/express": "latest",
+        "@types/sequelize": "latest",
+        "@types/multer": "latest",
+        "mocha": "latest",
+        "supertest": "latest"
+    },
+    "scripts": {
+        "start:serve": "cross-env NODE_ENV=development DEBUG=*,-sequelize:*,-express:* node index.js"
     }
 }
