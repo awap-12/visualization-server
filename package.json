@@ -1,16 +1,14 @@
 {
     "name": "server",
     "version": "1.0.0",
+    "workspaces": [
+        "artifacts/*"
+    ],
     "dependencies": {
         "debug": "latest",
         "http-proxy": "latest",
         "json-socket": "latest",
-        "minimist": "latest",
-        "member-a": "file:artifacts/member-a",
-        "member-b": "file:artifacts/member-b",
-        "serve": "file:artifacts/serve",
-        "user": "file:artifacts/user",
-        "page": "file:artifacts/page"
+        "minimist": "latest"
     },
     "devDependencies": {
         "cross-env": "latest"
