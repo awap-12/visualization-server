@@ -18,7 +18,7 @@ async function getAccessToken(bearerToken) {
             client: result.client,
             user: result.user
         };
-    } catch (err) { console.log("getAccessToken: ", err); }
+    } catch (err) { debug("getAccessToken: ", err); }
 }
 
 async function getRefreshToken(refreshToken) {
@@ -30,9 +30,9 @@ async function getRefreshToken(refreshToken) {
             refreshTokenExpiresAt: result ? new Date(result.refreshTokenExpiresAt) : null,
             scope: result.scope,
             client: result ? result.client : {},
-            user: result ? result.client : {}
+            user: result ? result.user : {}
         };
-    } catch (err) { console.log("getRefreshToken: ", err); }
+    } catch (err) { debug("getRefreshToken: ", err); }
 }
 
 async function saveToken(token, client, user) {
@@ -43,7 +43,7 @@ async function saveToken(token, client, user) {
         ]);
 
         return { client, user, ...token };
-    } catch (err) { console.log("saveToken: ", err); }
+    } catch (err) { debug("saveToken: ", err); }
 }
 
 async function revokeToken(token) {
@@ -51,7 +51,7 @@ async function revokeToken(token) {
         await OAuthRefreshToken.deleteRefreshToken(token);
 
         return { ...token, refreshTokenExpiresAt: new Date(null) }
-    } catch (err) { console.log("revokeToken: ", err); }
+    } catch (err) { debug("revokeToken: ", err); }
 }
 
 async function getAuthorizationCode(code) {
@@ -66,7 +66,7 @@ async function getAuthorizationCode(code) {
             client: result.client,
             user: result.user
         };
-    } catch (err) { console.log("getAuthorizationCode: ", err); }
+    } catch (err) { debug("getAuthorizationCode: ", err); }
 }
 
 async function saveAuthorizationCode(code, client, user) {
@@ -74,7 +74,7 @@ async function saveAuthorizationCode(code, client, user) {
         await OAuthAuthorizationCode.saveAuthorizationCode(code, client, user);
 
         return { ...code, client, user };
-    } catch (err) { console.log("saveAuthorizationCode: ", err); }
+    } catch (err) { debug("saveAuthorizationCode: ", err); }
 }
 
 async function getClient(clientId, clientSecret) {
@@ -86,7 +86,7 @@ async function getClient(clientId, clientSecret) {
             redirectUris: result.redirectUris,
             grants: result.grants
         };
-    } catch (err) { console.log("getClient: ", err); }
+    } catch (err) { debug("getClient: ", err); }
 }
 
 async function getUserFromClient(client) {
@@ -94,7 +94,7 @@ async function getUserFromClient(client) {
         let result = await OAuthClient.getUserFromClient(client);
 
         return !!result && "user" in result ? result.user.get() : false;
-    } catch (err) { console.log("getUserFromClient: ", err); }
+    } catch (err) { debug("getUserFromClient: ", err); }
 }
 
 async function getUser(username, password) {
@@ -102,7 +102,7 @@ async function getUser(username, password) {
         let result = await User.getUser(username, password);
 
         return result.get();
-    } catch (err) { console.log("getUser: ", err); }
+    } catch (err) { debug("getUser: ", err); }
 }
 
 async function validateScope(token, client, scope) {

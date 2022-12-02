@@ -39,15 +39,29 @@ async function saveUser(username, password) {
     });
 }
 
-async function deleteUser(username) {
-    return await User.destroy({
-        where: { name: username }
+async function updateUser(username, { password }) {
+    const result = await User.update({
+        password: password
+    }, {
+        where: {
+            name: username
+        }
     });
+
+    return result.filter(Boolean).length > 0;
+}
+
+async function deleteUser(username) {
+    // name is a unique key: update 1 -> success -> true, 0 -> fail -> false
+    return Boolean(await User.destroy({
+        where: { name: username }
+    }));
 }
 
 module.exports = {
     getUser,
     trySaveUser,
     saveUser,
+    updateUser,
     deleteUser
 };

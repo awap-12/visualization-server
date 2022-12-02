@@ -14,7 +14,7 @@
         "nunjucks": "latest",
         "oauth2-server": "latest",
         "sequelize": "latest",
-        "statuses": "latest"
+        "validator": "latest"
     },
     "devDependencies": {
         "@types/koa": "latest",
@@ -25,6 +25,7 @@
         "@types/koa-static": "latest",
         "@types/oauth2-server": "latest",
         "@types/sequelize": "latest",
+        "@types/validator": "latest",
         "mocha": "latest",
         "supertest": "latest"
     },

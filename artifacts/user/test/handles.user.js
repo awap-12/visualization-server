@@ -4,42 +4,65 @@ const sequelize = require("../handles/model");
 const userHandle = require("../handles/user");
 
 describe("user handle test", () => {
+    const globalUser = { name: `test-name`, password: `test-password` };
     before("database create", async () => sequelize.sync({ force: true }));
     after("database clean", async () => sequelize.drop());
-    it("should save user 'test'", async () => {
-        const result = await userHandle.saveUser("test", "test");
-        const hashPassword = crypto.createHash("md5").update("test" + "test").digest("hex");
-        assert.deepStrictEqual(result.get(), {
-            id: 1,
-            name: "test",
-            password: hashPassword,
-            scope: ''
+    describe("saveUser test", () => {
+        it(`should save user ${globalUser.name}`, async () => {
+            const result = await userHandle.saveUser(globalUser.name, globalUser.password);
+            const hashPassword = crypto.createHash("md5").update(globalUser.name + globalUser.password).digest("hex");
+            assert.deepStrictEqual(result.get(), {
+                id: 1,
+                name: globalUser.name,
+                password: hashPassword,
+                scope: ''
+            });
         });
     });
-    it("should reject if try to save 'test' again", async () => {
-        const result = await userHandle.trySaveUser("test", "0");
-        assert.strictEqual(result, false);
-    });
-    it("should accept if try to save different from 'test'", async () => {
-       const result = await userHandle.trySaveUser("foo", "bar");
-        const hashPassword = crypto.createHash("md5").update("foo" + "bar").digest("hex");
-       assert.deepStrictEqual(result.get(), {
-           id: 2,
-           name: "foo",
-           password: hashPassword,
-           scope: ''
-       });
-    });
-    it("should get user 'test'", async () => {
-        const result = await userHandle.getUser("test", "test");
-        assert.deepStrictEqual(result.get(), {
-            id: 1,
-            name: "test",
-            scope: ''
+    describe("trySaveUser test", () => {
+        it(`should reject if try to save ${globalUser.name} again`, async () => {
+            const result = await userHandle.trySaveUser(globalUser.name, "wrong");
+            assert.strictEqual(result, false);
+        });
+        it(`should accept if try to save different from ${globalUser.name}`, async () => {
+            const result = await userHandle.trySaveUser("foo", "bar");
+            const hashPassword = crypto.createHash("md5").update("foo" + "bar").digest("hex");
+            assert.deepStrictEqual(result.get(), {
+                id: 2,
+                name: "foo",
+                password: hashPassword,
+                scope: ''
+            });
         });
     });
-    it("should remove user 'test'", async () => {
-        const result = await userHandle.deleteUser("test");
-        assert.strictEqual(result, 1);
+    describe("getUser test", () => {
+        it(`should get user ${globalUser.name}`, async () => {
+            const result = await userHandle.getUser(globalUser.name, globalUser.password);
+            assert.deepStrictEqual(result.get(), {
+                id: 1,
+                name: globalUser.name,
+                scope: ''
+            });
+        });
+    });
+    describe("updateUser test", () => {
+        it(`should update ${globalUser.name}'s password`, async () => {
+            const result = await userHandle.updateUser(globalUser.name, { password: `new-${globalUser.password}` });
+            assert.deepStrictEqual(result, true);
+        });
+        it("should not update anything with unknown user", async () => {
+            const result = await userHandle.updateUser("bar", { password: `new-${globalUser.password}` });
+            assert.deepStrictEqual(result, false);
+        });
+    });
+    describe("deleteUser test", () => {
+        it(`should remove user ${globalUser.name}`, async () => {
+            const result = await userHandle.deleteUser(globalUser.name);
+            assert.strictEqual(result, true);
+        });
+        it("should not remove anything with unknown user", async () => {
+           const result = await userHandle.deleteUser("bar");
+           assert.strictEqual(result, false);
+        });
     });
 });

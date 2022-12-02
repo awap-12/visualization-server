@@ -3,25 +3,39 @@ const sequelize = require("../handles/model");
 const clientHandle = require("../handles/oauth/client");
 
 describe("oauth client handle test", () => {
+    const globalClient = {
+        id: "test-client-id",
+        secret: "test-client-secret",
+        redirectUris: "http://localhost/cb",
+        grants: ["a", "b"]
+    };
     before("database create", async () => sequelize.sync({ force: true }));
     after("database clean", async () => sequelize.drop());
-    it("should save client 'test'", async () => {
-        const result = await clientHandle.saveClient("test-id", "test-secret", "http://localhost:3000/cb", ["a", "b"]);
-        assert.deepStrictEqual(result.get(), {
-            id: "test-id",
-            secret: "test-secret",
-            grants: ["a", "b"],
-            redirectUris: ["http://localhost:3000/cb"],
-            scope: ''
+    describe("saveClient test", () => {
+        it(`should save client ${globalClient.id}`, async () => {
+            const result = await clientHandle.saveClient(globalClient.id, globalClient.secret, globalClient.redirectUris, globalClient.grants);
+            assert.deepStrictEqual(result.get(), {
+                id: globalClient.id,
+                secret: globalClient.secret,
+                grants: globalClient.grants,
+                redirectUris: [globalClient.redirectUris],
+                scope: ''
+            });
+        });
+        it("should save client with generate id", async () => {
+            const result = await clientHandle.saveClient(undefined, globalClient.secret, globalClient.redirectUris, globalClient.grants);
+            assert.deepStrictEqual(result.id.length, 16);
         });
     });
-    it("should get client 'test'", async () => {
-        const result = await clientHandle.getClient("test-id", "test-secret");
-        assert.deepStrictEqual(result.get(), {
-            id: "test-id",
-            grants: ["a", "b"],
-            redirectUris: ["http://localhost:3000/cb"],
-            scope: ''
+    describe("getClient test", () => {
+        it(`should get client ${globalClient.id}`, async () => {
+            const result = await clientHandle.getClient(globalClient.id, globalClient.secret);
+            assert.deepStrictEqual(result.get(), {
+                id: globalClient.id,
+                grants: globalClient.grants,
+                redirectUris: [globalClient.redirectUris],
+                scope: ''
+            });
         });
     });
 });

@@ -19,10 +19,11 @@ async function getAccessToken(bearerToken) {
 
 /**
  * Save an access token
+ * [rules](https://oauth2-server.readthedocs.io/en/latest/model/spec.html#savetoken-token-client-user-callback)
  * @param {object} token
  * @param {object} client
  * @param {object} user
- * @return {Promise<*>}
+ * @return {Promise<Model>}
  */
 async function saveAccessToken(token, client, user) {
     return await OAuthAccessToken.create({

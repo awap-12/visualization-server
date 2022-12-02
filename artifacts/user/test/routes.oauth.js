@@ -13,7 +13,7 @@ describe("oauth route test", () => {
     app.use(bodyParser());
     app.use(oauthRouter.routes()).use(oauthRouter.allowedMethods());
 
-    const agent = request.agent(app.listen(3000));
+    const agent = request.agent(app.listen());
     before("database create", async () => {
         await sequelize.sync({ force: true });
         await User.bulkCreate([{ name: "test-name", password: "test-password" }]);
@@ -31,20 +31,22 @@ describe("oauth route test", () => {
         }]);
     });
     after("database clean", async () => sequelize.drop());
-    it("should get a authorize code", done => {
-        agent
-            .post("/oauth/authorize?" +
-                "response_type=code&" +
-                "client_id=test-client&" +
-                "state=test&" +
-                "redirect_uri=http://localhost/cb&" +
-                "access_token=test-token")
-            .expect(302)
-            .end((err, res) => {
-                if (err) return done(err);
-                assert.ok("headers" in res);
-                assert.ok("location" in res.headers);
-                done();
-            });
+    describe("ALL /authorize", () => {
+        it("should get a authorize code", done => {
+            agent
+                .post("/oauth/authorize?" +
+                    "response_type=code&" +
+                    "client_id=test-client&" +
+                    "state=test&" +
+                    "redirect_uri=http://localhost/cb&" +
+                    "access_token=test-token")
+                .expect(302)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    assert.ok("headers" in res);
+                    assert.ok("location" in res.headers);
+                    done();
+                });
+        });
     });
 });

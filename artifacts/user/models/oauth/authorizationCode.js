@@ -1,4 +1,4 @@
-const { DataTypes, Model} = require("sequelize");
+const { DataTypes, Model } = require("sequelize");
 
 module.exports = sequelize => {
     class OAuthAuthorizationCode extends Model {

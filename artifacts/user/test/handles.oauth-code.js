@@ -2,59 +2,55 @@ const assert = require("node:assert");
 const sequelize = require("../handles/model");
 const codeHandle = require("../handles/oauth/authorizationCode");
 const crypto = require("node:crypto");
-const {user} = require("../../../config/database");
 
 const { OAuthClient, User } = sequelize.models;
 
 describe("oauth code handle test", () => {
+    const globalCode = "test-code";
+    const globalUser = { name: `test-name`, password: `test-password` };
+    const globalClient = {
+        id: "test-client-id",
+        secret: "test-client-secret",
+        redirectUris: "http://localhost/cb",
+        grants: ["test-grant"]
+    };
     before("database create", async () => {
         await sequelize.sync({ force: true });
-        let userSet = [], clientSet = [];
-        for (let i = 0; i < 10; i++) {
-            userSet[i] = { name: `test-name-${i}`, password: `test-password-${i}` };
-            clientSet[i] = {
-                id: `test-client-id-${i}`,
-                secret: `test-client-secret-${i}`,
-                redirectUris: "http://localhost/cb",
-                grants: ["test-grant"],
-                userId: i + 1
-            };
-        }
-        await User.bulkCreate(userSet);
-        await OAuthClient.bulkCreate(clientSet);
+        await User.bulkCreate([globalUser]);
+        await OAuthClient.bulkCreate([globalClient]);
     });
     after("database clean", async () => sequelize.drop());
-    it("should save code 'test'", async () => {
+    it(`should save code ${globalCode}`, async () => {
         const result = await codeHandle.saveAuthorizationCode({
-            authorizationCode: "test-code",
+            authorizationCode: globalCode,
             expiresAt: new Date(null),
             redirectUri: "http://localhost:3000"
-        }, { id: "test-client-id-0" }, { id: 1 });
+        }, { id: globalClient.id }, { id: 1 });
         assert.deepStrictEqual(result.get(), {
             id: 1,
-            code: "test-code",
+            code: globalCode,
             expires: new Date(null),
             redirectUri: "http://localhost:3000",
             scope: '',
-            clientId: "test-client-id-0",
+            clientId: globalClient.id,
             userId: 1,
         });
     });
-    it("should get code 'test'", async () => {
-        const result = await codeHandle.getAuthorizationCode("test-code");
-        const hashPassword = crypto.createHash("md5").update("test-name-0" + "test-password-0").digest("hex");
+    it(`should get code ${globalCode}`, async () => {
+        const result = await codeHandle.getAuthorizationCode(globalCode);
+        const hashPassword = crypto.createHash("md5").update(globalUser.name + globalUser.password).digest("hex");
         const { user: UserTable, client: OAuthClientTable } = result;
         assert.deepStrictEqual({ ...result.get(), user: UserTable.get(), client: OAuthClientTable.get() }, {
             client: {
-                id: "test-client-id-0",
-                secret: "test-client-secret-0",
-                grants: ["test-grant"],
-                redirectUris: ["http://localhost/cb"],
+                id: globalClient.id,
+                secret: globalClient.secret,
+                grants: globalClient.grants,
+                redirectUris: [globalClient.redirectUris],
                 scope: ''
             },
             user: {
                 id: 1,
-                name: "test-name-0",
+                name: globalUser.name,
                 password: hashPassword,
                 scope: ''
             },
