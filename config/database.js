@@ -1,14 +1,15 @@
 const debug = require("debug")("config:database");
 
 const {
-    MYSQL_HOST: host = "localhost",
-    MYSQL_PORT: port = 3306,
-    MYSQL_USER: user = "root",
-    MYSQL_PASSWORD: password = "root",
-    MYSQL_DATABASE: database ="awap"
+    DATABASE_URL: database = "awap",
+    DATABASE_HOST: host = "localhost",
+    DATABASE_PORT: port = 3306,
+    DATABASE_USER: user = "root",
+    DATABASE_PASSWORD: password = "root",
+    DATABASE_DIALECT: dialect = "mysql"
 } = process.env;
 
-debug(`host: ${host}; port: ${+port}; user: ${user}; password: ${password}; database: ${database}`);
+debug(`host: ${host}; port: ${+port}; user: ${user}; password: ${password}; database: ${database}; dialect: ${dialect}`);
 
 module.exports = {
     host,
@@ -16,7 +17,7 @@ module.exports = {
     user,
     password,
     database,
-    dialect: "mysql",
+    dialect,
     pool: {
         max: 5,
         min: 0,
