@@ -1,11 +1,15 @@
 
+# cache
+tmp/
+
 # dependencies
-/node_modules
-/package-lock.json
+node_modules/
+package-lock.json
 
 # production
 build
+dist
 
 # dev
-/.vscode
-/.idea
+.vscode/
+.idea/
