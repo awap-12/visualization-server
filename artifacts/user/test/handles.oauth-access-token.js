@@ -1,6 +1,6 @@
 const assert = require("node:assert");
 const sequelize = require("../handles/model");
-const OAuthAccessToken = require("../handles/oauth/accessToken");
+const OAuthAccessTokenHandle = require("../handles/oauth/accessToken");
 const crypto = require("node:crypto");
 
 const { OAuthClient, User } = sequelize.models;
@@ -22,7 +22,7 @@ describe("oauth access token handle test", () => {
     after("database clean", async () => sequelize.drop());
     describe("saveAccessToken test", () => {
         it(`should save access token ${globalToken}`, async () => {
-            const result = await OAuthAccessToken.saveAccessToken(
+            const result = await OAuthAccessTokenHandle.saveAccessToken(
                 { accessToken: globalToken, accessTokenExpiresAt: new Date(null) },
                 { id: globalClient.id },
                 { id: 1 });
@@ -38,7 +38,7 @@ describe("oauth access token handle test", () => {
     });
     describe("getAccessToken test", () => {
         it(`should get access token ${globalToken}`, async () => {
-            const result = await OAuthAccessToken.getAccessToken(globalToken);
+            const result = await OAuthAccessTokenHandle.getAccessToken(globalToken);
             const hashPassword = crypto.createHash("md5").update(globalUser.name + globalUser.password).digest("hex");
             const { user: UserTable, client: OAuthClientTable } = result;
             assert.deepStrictEqual(Object.assign(result.get(), { user: UserTable.get(), client: OAuthClientTable.get() }), {

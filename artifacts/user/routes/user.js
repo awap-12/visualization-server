@@ -1,5 +1,5 @@
 const Router = require("koa-router");
-const user = require("../handles/user");
+const userHandle = require("../handles/user");
 
 const router = new Router();
 
@@ -27,7 +27,7 @@ router.post("/", async ctx => {
     try {
         const { name, password } = ctx.request.body;
 
-        const result = await user.trySaveUser(name, password);
+        const result = await userHandle.trySaveUser(name, password);
         if (!result) throw new Error("password error");
 
         ctx.status = 200;
@@ -40,7 +40,7 @@ router.put("/", /** auth middleware */ async ctx => {
     try {
         const { name, password } = ctx.request.body;
 
-        const result = await user.updateUser(name, { password });
+        const result = await userHandle.updateUser(name, { password });
         if (!result) throw new Error("unknown user");
 
         ctx.status = 200;
@@ -51,7 +51,12 @@ router.put("/", /** auth middleware */ async ctx => {
 
 router.delete("/:id", async ctx => {
     try {
+        const { id } = ctx.request.params;
 
+        const result = await userHandle.deleteUser(id);
+        if (!result) throw new Error("unknown id")
+
+        ctx.status = 200;
     } catch (err) {
         ctx.status = 500;
     }

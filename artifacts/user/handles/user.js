@@ -51,10 +51,12 @@ async function updateUser(username, { password }) {
     return result.filter(Boolean).length > 0;
 }
 
-async function deleteUser(username) {
+async function deleteUser(id) {
     // name is a unique key: update 1 -> success -> true, 0 -> fail -> false
     return Boolean(await User.destroy({
-        where: { name: username }
+        where: {
+            id: id
+        }
     }));
 }
 

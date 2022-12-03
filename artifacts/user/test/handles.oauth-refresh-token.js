@@ -1,6 +1,6 @@
 const assert = require("node:assert");
 const sequelize = require("../handles/model");
-const OAuthRefreshToken = require("../handles/oauth/refreshToken");
+const OAuthRefreshTokenHandle = require("../handles/oauth/refreshToken");
 const crypto = require("node:crypto");
 
 const { OAuthClient, User } = sequelize.models;
@@ -21,7 +21,7 @@ describe("oauth refresh token handle test", () => {
     });
     after("database clean", async () => sequelize.drop());
     it(`should save refresh token ${globalToken}`, async () => {
-        const result = await OAuthRefreshToken.saveRefreshToken(
+        const result = await OAuthRefreshTokenHandle.saveRefreshToken(
             { refreshToken: globalToken, refreshTokenExpiresAt: new Date(null) },
             { id: globalClient.id },
             { id: 1 });
@@ -35,7 +35,7 @@ describe("oauth refresh token handle test", () => {
         });
     });
     it(`should get refresh token ${globalToken}`, async () => {
-        const result = await OAuthRefreshToken.getRefreshToken(globalToken);
+        const result = await OAuthRefreshTokenHandle.getRefreshToken(globalToken);
         const hashPassword = crypto.createHash("md5").update(globalUser.name + globalUser.password).digest("hex");
         const { user: UserTable, client: OAuthClientTable } = result;
         assert.deepStrictEqual(Object.assign(result.get(), { user: UserTable.get(), client: OAuthClientTable.get() }), {

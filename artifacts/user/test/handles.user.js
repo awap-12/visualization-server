@@ -57,11 +57,11 @@ describe("user handle test", () => {
     });
     describe("deleteUser test", () => {
         it(`should remove user ${globalUser.name}`, async () => {
-            const result = await userHandle.deleteUser(globalUser.name);
+            const result = await userHandle.deleteUser(1);
             assert.strictEqual(result, true);
         });
         it("should not remove anything with unknown user", async () => {
-           const result = await userHandle.deleteUser("bar");
+           const result = await userHandle.deleteUser(1024);
            assert.strictEqual(result, false);
         });
     });

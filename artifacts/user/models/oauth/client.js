@@ -50,7 +50,7 @@ module.exports = sequelize => {
             },
             beforeBulkCreate(instances) {
                 for (const instance of instances) {
-                    if (!!instance.id) return;
+                    if (!!instance.id) break;
                     let result = null, flag = null;
                     while (flag === null) {
                         flag = OAuthClient.findByPk((result = base62(CLIENT_ID_GENERATE_LENGTH)));

@@ -1,6 +1,6 @@
 const { Request, Response } = require("oauth2-server");
 const Router = require("koa-router");
-const oauth = require("../handles/oauth");
+const oauthHandle = require("../handles/oauth");
 
 const router = new Router({ prefix: "/oauth" });
 
@@ -10,7 +10,7 @@ router.all("/token", async ctx => {
 
     try {
         ctx.state.oauth = {
-            token: await oauth.token(request, response)
+            token: await oauthHandle.token(request, response)
         };
 
         ctx.set(response.headers);
@@ -30,7 +30,7 @@ router.all("/authorize", async ctx => {
 
     try {
         ctx.state.oauth = {
-            code: await oauth.authorize(request, response)
+            code: await oauthHandle.authorize(request, response)
         };
 
         ctx.set(response.headers);

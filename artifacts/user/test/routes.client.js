@@ -1,7 +1,6 @@
 const request = require("supertest");
 const sequelize = require("../handles/model");
 const Koa = require("koa");
-const view = require("koa-view");
 const bodyParser = require("koa-bodyparser");
 const clientRouter = require("../routes/client");
 

@@ -54,4 +54,11 @@ describe("user route test", () => {
                 .expect(200, done);
         });
     });
+    describe("DELETE /", () => {
+        it("should delete a user", done => {
+            agent
+                .delete("/1")
+                .expect(200, done)
+        });
+    });
 });
