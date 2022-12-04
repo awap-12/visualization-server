@@ -24,9 +24,10 @@ function development() {
 
     const models = {
         /** Serve models */
-        View: require("../models/view")(sequelize),
+        Chart: require("../models/chart")(sequelize),
+        File: require("../models/file")(sequelize),
         /** User models */
-        User: require("../models/user")(sequelize)
+        User: require("user/models/user")(sequelize)
     }
 
     for (const name in models) {

@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "main": "index.js",
     "dependencies": {
+        "camelcase": "latest",
         "compression": "latest",
         "express": "latest",
         "multer": "latest",
@@ -10,6 +11,7 @@
         "sequelize": "latest"
     },
     "devDependencies": {
+        "@types/camelcase": "latest",
         "@types/compression": "latest",
         "@types/express": "latest",
         "@types/sequelize": "latest",
