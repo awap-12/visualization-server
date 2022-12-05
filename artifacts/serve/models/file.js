@@ -3,26 +3,24 @@ const { DataTypes, Model } = require("sequelize");
 const path = require("node:path");
 const fs = require("node:fs");
 
-const { NODE_ENV } = process.env;
-
-const isDev = NODE_ENV === "development";
-
-const ROOT = path.resolve(__dirname, "..", isDev ? "test" : '');
+const ROOT = path.resolve(__dirname, "..");
 
 module.exports = sequelize => {
+    const ChartFile = sequelize.define("ChartFile", {}, { timestamps: false, underscored: true });
+
     class File extends Model {
         static associate({ Chart, File }) {
             File.belongsToMany(Chart, {
-                through: "ChartFile"
+                through: ChartFile
             });
             Chart.belongsToMany(File, {
-                through: "ChartFile"
+                through: ChartFile
             });
         }
     }
 
     File.init({
-        path: {
+        url: {
             type: DataTypes.STRING,
             primaryKey: true,
             allowNull: false,
@@ -44,9 +42,10 @@ module.exports = sequelize => {
     }, {
         sequelize,
         tableName: "file",
+        timestamps: false,
         hooks: {
             afterDestroy(instance) {
-                const filePath = path.join(ROOT, instance.path);
+                const filePath = path.join(ROOT, instance.url);
                 fs.access(filePath, err => {
                     if (!err) {
                         fs.unlink(filePath, err => {

@@ -14,25 +14,29 @@ describe("chart handle test", () => {
     };
     const globalFile = [
         {
+            url: "test/fixtures/foo.bar",
+            path: path.resolve(__dirname, "fixtures/test-foo.bar"),
             name: "test-file-name",
-            path: "/fixtures/foo.bar",
             size: 0
         },{
+            url: "test/fixtures/bar.foo",
+            path: path.resolve(__dirname, "fixtures/test-bar.foo"),
             name: "test-file-name",
-            path: "/fixtures/bar.foo",
             size: 0
         }]
     let idCache = [];
     before("database create", async () => {
         await sequelize.sync({ force: true });
         await User.bulkCreate([{ name: `test-name`, password: `test-password` }]);
-        await fs.writeFile(path.resolve(__dirname, "fixtures/foo.bar"), '');
-        await fs.writeFile(path.resolve(__dirname, "fixtures/bar.foo"), '');
+    });
+    beforeEach(async () => {
+        await fs.writeFile(path.resolve(__dirname, "fixtures/test-foo.bar"), '');
+        await fs.writeFile(path.resolve(__dirname, "fixtures/test-bar.foo"), '');
     });
     after("database clean", async () => sequelize.drop());
     describe("saveChart test", () => {
         it("should create a chart", async () => {
-            const result = await chartHandle.saveChart({ id: 1 }, [globalFile[0]], globalChart.name, globalChart.description);
+            const result = await chartHandle.saveChart(1, [globalFile[0]], globalChart.name, globalChart.description);
 
             const { id, Files, ...chart } = result.get();
             const { ChartFile, createdAt, updatedAt, ...file } = Files[0].get();
@@ -43,7 +47,7 @@ describe("chart handle test", () => {
             assert.deepStrictEqual(file, {
                 name: globalFile[0].name,
                 info: '',
-                path: globalFile[0].path,
+                url: globalFile[0].url,
                 size: globalFile[0].size
             });
             assert.deepStrictEqual(chart, {
@@ -53,7 +57,7 @@ describe("chart handle test", () => {
             });
         });
         it("should use shared file", async () => {
-            const result = await chartHandle.saveChart({ id: 1 }, [globalFile[0]], "other-chart-name", "other-chart-desc");
+            const result = await chartHandle.saveChart(1, [globalFile[0]], "other-chart-name", "other-chart-desc");
 
             const { id, Files, ...chart } = result.get();
             const { ChartFile, createdAt, updatedAt, ...file } = Files[0].get();
@@ -64,7 +68,7 @@ describe("chart handle test", () => {
             assert.deepStrictEqual(file, {
                 name: globalFile[0].name,
                 info: '',
-                path: globalFile[0].path,
+                url: globalFile[0].url,
                 size: globalFile[0].size
             });
             assert.deepStrictEqual(chart, {
@@ -78,11 +82,23 @@ describe("chart handle test", () => {
         it(`should get a chart ${idCache[0]}`, async () => {
             const result = await chartHandle.getChartById(idCache[0]);
 
-            assert.deepStrictEqual(result.get(), {
+            assert.deepStrictEqual(result.toJSON(), {
                 id: idCache[0],
                 name: globalChart.name,
                 description: globalChart.description,
-                userId: 1
+                userId: 1,
+                Files: [
+                    {
+                        ChartFile: {
+                            ChartId: idCache[0],
+                            FileUrl: globalFile[0].url
+                        },
+                        url: globalFile[0].url,
+                        name: globalFile[0].name,
+                        info: '',
+                        size: globalFile[0].size
+                    }
+                ]
             });
         });
         it("should return false with unknown id", async () => {
@@ -91,9 +107,9 @@ describe("chart handle test", () => {
             assert.strictEqual(result, false);
         });
     });
-    describe("getChart test", () => {
+    describe("findChart test", () => {
         it("should get a group of chart", async () => {
-            const [result] = await chartHandle.getChart(globalChart.name);
+            const [result] = await chartHandle.findChart(globalChart.name);
 
             assert.deepStrictEqual(result.get(), {
                 id: idCache[0],
@@ -103,7 +119,7 @@ describe("chart handle test", () => {
             });
         });
         it("should return false with none matching name", async () => {
-            const result = await chartHandle.getChart("foobar");
+            const result = await chartHandle.findChart("foobar");
 
             assert.strictEqual(result, false);
         });
@@ -138,7 +154,7 @@ describe("chart handle test", () => {
 
             assert.strictEqual(result, true);
 
-            const fileResult = await fileHandle.getFileByPath(globalFile[0].path);
+            const fileResult = await fileHandle.getFileByUrl(globalFile[0].url);
 
             assert.strictEqual(!!fileResult, true);
         });
@@ -152,7 +168,7 @@ describe("chart handle test", () => {
 
             assert.strictEqual(result, true);
 
-            const fileResult = await fileHandle.getFileByPath(globalFile[0].path);
+            const fileResult = await fileHandle.getFileByUrl(globalFile[0].url);
 
             assert.strictEqual(!!fileResult, false);
         });

@@ -42,7 +42,7 @@ async function collect(ref, root) {
     let stats = await fs.stat(root);
     if (!stats.isDirectory()) {
         ref.push({
-            path: path.posix.relative(STATIC_ROOT_POSIX, root.split(path.sep).join("/")),
+            url: path.posix.relative(STATIC_ROOT_POSIX.slice(0, -6), root.split(path.sep).join("/")),
             name: path.parse(root).name,
             size: (await fs.stat(path.resolve(STATIC_ROOT, root))).size
         });
@@ -66,7 +66,7 @@ module.exports = async () => {
         }
         for (const tempFile of tempFiles) {
             tempChartFile.push({
-                FilePath: tempFile.path,
+                FileUrl: tempFile.url,
                 ChartId: folderName
             });
         }
@@ -78,10 +78,10 @@ module.exports = async () => {
     await Chart.bulkCreate(charts);
     await File.bulkCreate(files);
     await ChartFile.bulkCreate([...chartFiles, {
-        FilePath: "base03/Co2Annual.csv",
+        FileUrl: "static/base03/Co2Annual.csv",
         ChartId: "base04"
     }, {
-        FilePath: "base03/Co2Monthly.csv",
+        FileUrl: "static/base03/Co2Monthly.csv",
         ChartId: "base04"
     }]);
 };

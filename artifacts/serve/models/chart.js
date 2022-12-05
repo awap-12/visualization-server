@@ -53,7 +53,7 @@ module.exports = sequelize => {
                 const { Files } = await Chart.findByPk(instance.id, {
                     include: {
                         model: instance.sequelize.models.File,
-                        attributes: ["path"],
+                        attributes: ["url"],
                         include: Chart
                     },
                     attributes: []
