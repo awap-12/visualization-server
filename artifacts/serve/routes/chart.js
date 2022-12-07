@@ -4,7 +4,7 @@ const multer = require("multer");
 const path = require("node:path");
 const chartHandle = require("../handles/chart");
 const fileHandle = require("../handles/file");
-const move = require("../utils/move");
+const { move } = require("../utils/file");
 
 const ROOT = path.resolve(__dirname, "..");
 const TEMP = path.resolve(__dirname, "..", "tmp");

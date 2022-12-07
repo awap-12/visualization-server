@@ -1,7 +1,7 @@
 const fileHandle = require("../handles/file");
 const sequelize = require("./model");
 const { Op } = require("sequelize");
-const move = require("../utils/move");
+const { move } = require("../utils/file");
 const { join, resolve } = require("node:path");
 
 const { Chart, File } = sequelize.models;

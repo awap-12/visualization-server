@@ -47,16 +47,6 @@ module.exports = sequelize => {
                     flag = OAuthClient.findByPk((result = base62(CLIENT_ID_GENERATE_LENGTH)));
                 }
                 instance.setDataValue("id", result);
-            },
-            beforeBulkCreate(instances) {
-                for (const instance of instances) {
-                    if (!!instance.id) break;
-                    let result = null, flag = null;
-                    while (flag === null) {
-                        flag = OAuthClient.findByPk((result = base62(CLIENT_ID_GENERATE_LENGTH)));
-                    }
-                    instance.setDataValue("id", result);
-                }
             }
         }
     });

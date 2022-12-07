@@ -1,4 +1,5 @@
-const { File } = require("./model").models;
+const { File, Local, Database } = require("./model").models;
+const storageHandle = require("../handles/storage");
 const { Op } = require("sequelize");
 
 /**
@@ -7,9 +8,7 @@ const { Op } = require("sequelize");
  * @return {Promise<Model|boolean>}
  */
 async function getFileByUrl(url) {
-    const result = await File.findByPk(url);
-
-    return !!result ? result : false;
+    return await storageHandle.getStorage(url);
 }
 
 /**
@@ -27,14 +26,25 @@ async function findFile(search, limit, order) {
                     name: {
                         [Op.like]: `%${search}%`
                     }
-                },
-                {
-                    url: {
-                        [Op.like]: `%${search}%`
-                    }
                 }
             ]
         },
+        include: [
+            {
+                attributes: {
+                    exclude: ["id"]
+                },
+                model: Local,
+                as: "local"
+            },
+            {
+                attributes: {
+                    exclude: ["id"]
+                },
+                model: Database,
+                as: "database"
+            }
+        ],
         order: order,
         limit: limit
     });
@@ -49,7 +59,26 @@ async function findFile(search, limit, order) {
  * @return {Promise<Model[]|boolean>}
  */
 async function getFile(limit, order) {
-    const { count, rows } = await File.findAndCountAll({ order: order, limit: limit });
+    const { count, rows } = await File.findAndCountAll({
+        include: [
+            {
+                attributes: {
+                    exclude: ["id"]
+                },
+                model: Local,
+                as: "local"
+            },
+            {
+                attributes: {
+                    exclude: ["id"]
+                },
+                model: Database,
+                as: "database"
+            }
+        ],
+        order: order,
+        limit: limit
+    });
 
     return count > 0 ? rows : false;
 }
@@ -58,13 +87,14 @@ async function getFile(limit, order) {
  * Save a file, if file exist then update file data.
  * @param {string} url combine id of {@link Chart} with file name
  * @param {string} name
- * @param {number} size
+ * @param {string} strategy
  * @param {string} [info]
+ * @param {number} size
  * @param {boolean} [force] force update data (danger)
  * @return {Promise<Model|boolean>}
  */
-async function saveFile(url, name, size, info, force = false) {
-    const option = Object.entries({ name, size, info }).reduce((obj, [key, value]) => {
+async function saveFile(url, { name, strategy, info, size }, force = false) {
+    const option = Object.entries({ name, strategy, info, size }).reduce((obj, [key, value]) => {
         if (!!value) obj[key] = value;
         return obj;
     }, {});
@@ -103,12 +133,7 @@ async function updateFile(url, data) {
  * @return {Promise<boolean>}
  */
 async function deleteFile(url) {
-    return Boolean(await File.destroy({
-        individualHooks: true, // use hook
-        where: {
-            url: url
-        }
-    }));
+    return await storageHandle.deleteStorage(url);
 }
 
 module.exports = {

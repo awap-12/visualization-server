@@ -10,8 +10,15 @@ describe("file handle test", () => {
         info: "test-info",
         url: "/fixtures/foo.bar",
         size: 1024
-    }
-    before("database create", async () => await sequelize.sync({force: true}));
+    };
+    const globalD3Dsv = [
+        { time: "test-time-01", value: "test-value-01" },
+        { time: "test-time-02", value: "test-value-02" },
+        { time: "test-time-03", value: "test-value-03" },
+        { time: "test-time-04", value: "test-value-04" }
+    ];
+    globalD3Dsv.columns = ["time", "value"];
+    before("database create", async () => await sequelize.sync({ force: true }));
     after("database clean", async () => sequelize.drop());
     describe("saveFile test", () => {
         it("should save a file", async () => {

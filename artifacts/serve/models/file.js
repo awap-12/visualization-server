@@ -1,9 +1,4 @@
-const debug = require("debug")("handle:file");
 const { DataTypes, Model } = require("sequelize");
-const path = require("node:path");
-const fs = require("node:fs");
-
-const ROOT = path.resolve(__dirname, "..");
 
 module.exports = sequelize => {
     const ChartFile = sequelize.define("ChartFile", {}, { timestamps: false, underscored: true });
@@ -30,6 +25,11 @@ module.exports = sequelize => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        strategy: {
+            type: DataTypes.ENUM("local", "database"),
+            defaultValue: "local",
+            allowNull: false
+        },
         info: {
             type: DataTypes.STRING,
             defaultValue: ''
@@ -44,21 +44,20 @@ module.exports = sequelize => {
         tableName: "file",
         timestamps: false,
         hooks: {
-            afterDestroy(instance) {
-                const filePath = path.join(ROOT, instance.url);
-                fs.access(filePath, err => {
-                    if (!err) {
-                        fs.unlink(filePath, err => {
-                            if (!err) {
-                                debug("remove %s", filePath);
-                            } else {
-                                debug("unable to remove %s", filePath);
-                            }
-                        });
-                    } else {
-                        debug("can not find %s", filePath);
-                    }
+            async beforeDestroy(instance, options) {
+                // because of destroy with foreign key can not trigger model hooks
+                // so, we have to remove all instances by hand.
+                // IMPORTANT !! remember not add CASCADE or hooks into relationship
+                const { File, Local, Database } = instance.sequelize.models;
+                const { local, database } = await File.findByPk(instance.url, {
+                    include: [
+                        { model: Local, as: "local" },
+                        { model: Database, as: "database" }
+                    ]
                 });
+                await Promise.all([local, database].map(async value => {
+                    if (!!value) await value.destroy({ where: { id: value.id } });
+                }));
             }
         }
     });
