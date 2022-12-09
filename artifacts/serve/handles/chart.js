@@ -11,7 +11,27 @@ const { Chart, ChartFile, File, Local, Database } = sequelize.models;
  * @return {Promise<Model|boolean>}
  */
 async function getChartById(id) {
-    const result = await Chart.findByPk(id, { include: File });
+    const result = await Chart.findByPk(id, {
+        include: {
+            model: File,
+            include: [
+                {
+                    attributes: {
+                        exclude: ["id"]
+                    },
+                    model: Local,
+                    as: "local"
+                },
+                {
+                    attributes: {
+                        exclude: ["id"]
+                    },
+                    model: Database,
+                    as: "database"
+                }
+            ]
+        }
+    });
 
     return !!result ? result : false;
 }
@@ -155,18 +175,18 @@ async function updateChart(id, { files, ...data }) {
                     const { owner: currentOwner } = fileHandle.getFileByUrl(url);
                     if (id === currentOwner) {
                         // update by author
+                        debug("updateChart - update file %s with options", url, options);
                         return await fileHandle.updateFile(url, options);
                     } else {
                         // transfer ownership
                         const chartResult = await getChartById(id);
                         const filesResult = await fileHandle.saveFile(url, { ...options, owner: id });
                         await chartResult.addFile(filesResult);
-                        debug("save chart: %o, save file %o", chartResult.toJSON(), filesResult.toJSON());
+                        debug("updateChart - save chart: %o, save file %o", chartResult.toJSON(), filesResult.toJSON());
                         return true;
                     }
                 }
                 case "deleted": {
-                    const { owner: currentOwner } = fileHandle.getFileByUrl(url);
                     const count = await ChartFile.count({
                         where: {
                             [Op.and]: [
@@ -175,11 +195,12 @@ async function updateChart(id, { files, ...data }) {
                             ]
                         }
                     });
-                    debug("%s chart use file: %s", count, url);
                     if (count <= 0) {
+                        debug("updateChart - remove file: %s", url);
                         return await fileHandle.deleteFile(url);
                     } else {
                         // broke the relation
+                        debug("updateChart - remove link only: %d chart use file: %s", count, url);
                         return await ChartFile.destroy({
                             where: {
                                 [Op.and]: [

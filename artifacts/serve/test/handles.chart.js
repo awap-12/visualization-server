@@ -139,21 +139,26 @@ describe("chart handle test", () => {
             const { file, ...other} = globalFile[0];
             const result = await chartHandle.getChartById(idCache[0]);
 
-            assert.deepStrictEqual(result.toJSON(), {
+            const { Files, ...Chart } = result.get();
+            assert.deepStrictEqual(Chart, {
                 id: idCache[0],
                 ...globalChart,
                 userId: 1,
-                Files: [
-                    {
-                        ChartFile: {
-                            ChartId: idCache[0],
-                            FileUrl: other.url
-                        },
-                        ...other,
-                        strategy: "local",
-                        owner: ownerCache[0]
-                    }
-                ]
+            });
+
+            const { ChartFile, local, database, ...File } = Files[0].get();
+            assert.deepStrictEqual(File, {
+                ...other,
+                strategy: "local",
+                owner: ownerCache[0]
+            });
+            assert.deepStrictEqual(ChartFile.get(), {
+                ChartId: idCache[0],
+                FileUrl: other.url
+            });
+            assert.deepStrictEqual(local.get(), {
+                fileId: other.url,
+                path: path.resolve(__dirname, "..", other.url)
             });
         });
         it(`should get the chart which created by multiple files`, async () => {
@@ -167,7 +172,7 @@ describe("chart handle test", () => {
                 userId: 1
             });
 
-            Files.map(value => value.toJSON()).forEach(({ ChartFile, owner, ...File }, index) => {
+            Files.map(value => value.toJSON()).forEach(({ ChartFile, owner, local, database, ...File }, index) => {
                 const { file, ...other } = globalFile[index];
                 assert.deepStrictEqual(owner, ownerCache[2][index]);
                 assert.deepStrictEqual(File, {
@@ -208,11 +213,30 @@ describe("chart handle test", () => {
 
             assert.strictEqual(result, true);
         });
-        it(`should insert file with ${globalFile[0].url}`, async () => {
+        // it(`should insert file with ${globalFile[0].url}`, async () => {
+        //     await fs.writeFile(path.resolve(__dirname, "fixtures/test.foo"), '')
+        //
+        //     const result = await chartHandle.updateChart(idCache[0], {
+        //         files: [{
+        //             url: globalFile[0].url,
+        //             operation: "inserted",
+        //             options: {
+        //                 ...globalFile[1]
+        //             }
+        //         }]
+        //     });
+        //
+        //     assert.strictEqual(result, true);
+        //
+        //     const data = await chartHandle.getChartById(idCache[0]);
+        //
+        //     assert.deepStrictEqual(data.toJSON(), {})
+        // });
+        it(`should update file with modified operation replace ${globalFile[0].url} prefab -> ${globalFile[1].url} prefab`, async () => {
             const result = await chartHandle.updateChart(idCache[0], {
                 files: [{
                     url: globalFile[0].url,
-                    operation: "inserted",
+                    operation: "modified",
                     options: {
                         ...globalFile[1]
                     }
@@ -225,27 +249,25 @@ describe("chart handle test", () => {
 
             assert.deepStrictEqual(data.toJSON(), {})
         });
-        it(`should update file with modified operation ${globalFile[0].url} -> ${globalFile[1].url}`, async () => {
-            const result = await chartHandle.updateChart(idCache[0], {
-                files: [{
-                    url: globalFile[0].url,
-                    operation: "modified",
-                    options: {
-                        ...globalFile[1],
-                        url: "test/fixtures/test-03"
-                    }
-                }]
-            });
-
-            assert.strictEqual(result, true);
-        });
-        it("should remove file with deleted operation", async () => {
-            const result = await chartHandle.updateChart(idCache[0], {
+        it("should remove file link with deleted operation with file used by multi chart", async () => {
+            const result = await chartHandle.updateChart(idCache[1], {
                 files: [{
                     url: globalFile[0].url,
                     operation: "deleted"
                 }]
             });
+
+            assert.strictEqual(result, true);
+        });
+        it("should remove file with deleted operation when file used by single chart", async () => {
+            const result = await chartHandle.updateChart(idCache[2], {
+                files: [{
+                    url: globalFile[1].url,
+                    operation: "deleted"
+                }]
+            });
+
+            assert.strictEqual(result, true);
         });
     });
     describe("deleteChart test", () => {

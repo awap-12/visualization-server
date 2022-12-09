@@ -109,7 +109,7 @@ async function saveFile(url, { strategy = "local", file, ...data }) {
             });
         case "database":
             const { name, columns, ...pureData } = file;
-            debug("create file: %o", file);
+            debug("saveFile - create file: %o", { strategy, file, ...data });
             const result = await File.create({ url, strategy, ...data, database: { table: name, columns: columns, fileId: url }}, {
                 include: {
                     model: Database,
