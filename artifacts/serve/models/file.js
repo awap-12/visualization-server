@@ -34,10 +34,9 @@ module.exports = sequelize => {
             type: DataTypes.STRING,
             defaultValue: ''
         },
-        // for file same detect
-        size: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
+        owner: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     }, {
         sequelize,
@@ -45,8 +44,8 @@ module.exports = sequelize => {
         timestamps: false,
         hooks: {
             async beforeDestroy(instance, options) {
-                // because of destroy with foreign key can not trigger model hooks
-                // so, we have to remove all instances by hand.
+                // Because destroy with foreign key not able to trigger model hooks
+                // So, we have to remove all instances by hand.
                 // IMPORTANT !! remember not add CASCADE or hooks into relationship
                 const { File, Local, Database } = instance.sequelize.models;
                 const { local, database } = await File.findByPk(instance.url, {
@@ -55,8 +54,17 @@ module.exports = sequelize => {
                         { model: Database, as: "database" }
                     ]
                 });
-                await Promise.all([local, database].map(async value => {
-                    if (!!value) await value.destroy({ where: { id: value.id } });
+                await Promise.all(Object.entries({ local, database }).map(async ([key, value]) => {
+                    if (!!value) {
+                        const modelName = key.charAt(0).toUpperCase() + key.slice(1);
+                        sequelize.models[modelName].destroy({
+                            individualHooks: true,
+                            where: {
+                                id: value.id
+                            }
+                        });
+                    }
+                    //if (!!value) await value.destroy({ where: { id: value.id } });
                 }));
             }
         }

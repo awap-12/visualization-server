@@ -4,21 +4,21 @@ const assert = require("node:assert");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 
-const { File } = sequelize.models;
+const { File, Database } = sequelize.models;
 
 describe("storage handle test", () => {
     const globalFile = [
         {
-            url: "fixtures/test-01",
+            url: "test/fixtures/test-01",
             name: "test-file-01",
             info: "test-info-01",
-            size: 1024
+            owner: "test-owner-01"
         }, {
-            url: "fixtures/test-02",
+            url: "test/fixtures/test-02",
             name: "test-file-02",
             strategy: "database",
             info: "test-info-02",
-            size: 1024
+            owner: "test-owner-02"
         }
     ];
     const globalD3Dsv = [
@@ -33,14 +33,14 @@ describe("storage handle test", () => {
         await sequelize.sync({ force: true });
         await File.bulkCreate(globalFile);
         await Promise.all(globalFile.map(async ({ url }) => {
-            await fs.writeFile(path.resolve(__dirname, url), '');
+            await fs.writeFile(path.resolve(__dirname, "..", url), '');
         }));
     });
     after("database clean", async () => {
         await Promise.all(globalFile.map(async ({ url }) => {
             try {
-                await fs.access(path.resolve(__dirname, url));
-                await fs.unlink(path.resolve(__dirname, url));
+                await fs.access(path.resolve(__dirname, "..", url));
+                await fs.unlink(path.resolve(__dirname, "..", url));
             } catch {}
         }));
         await sequelize.drop();
@@ -48,10 +48,13 @@ describe("storage handle test", () => {
     describe("saveStorage test", () => {
         it("should save file by local storage", async () => {
             const file = globalFile[0];
-            const result = await storageHandle.saveStorage(file.url, path.resolve(__dirname, file.url), file.strategy);
+            await fs.writeFile(path.resolve(__dirname, "fixtures/test-move"), '');
+
+            const result = await storageHandle.saveStorage(file.url, path.resolve(__dirname, "fixtures/test-move"), file.strategy);
+
             assert.deepStrictEqual(result.toJSON(), {
                 id: 1,
-                path: path.resolve(__dirname, file.url),
+                path: path.resolve(__dirname, "..", file.url),
                 fileId: file.url
             });
         });
@@ -68,16 +71,34 @@ describe("storage handle test", () => {
         it("should save by database storage with duplicate file id", async () => {
             const file = globalFile[0];
             const result = await storageHandle.saveStorage(file.url, globalD3Dsv, "database");
-            assert.deepStrictEqual(result.map(value => value.toJSON()), globalD3Dsv.map((value, index) => {
-                return { id: index + 1, ...value };
+
+            const { table, data, ...other } = result.get();
+
+            assert.strictEqual(table.length, 12);
+            assert.deepStrictEqual((await data).map(value => value.toJSON()), globalD3Dsv.map((value, index) => {
+                return { ...value };
             }));
+            assert.deepStrictEqual(other, {
+                id: 1,
+                columns: ["time", "value"],
+                fileId: file.url
+            });
         });
         it("should save by database storage with optional name", async () => {
             const file = globalFile[1]; globalD3Dsv.name = "test-name";
             const result = await storageHandle.saveStorage(file.url, globalD3Dsv, file.strategy);
-            assert.deepStrictEqual(result.map(value => value.toJSON()), globalD3Dsv.map((value, index) => {
-                return { id: index + 1, ...value };
+
+            const { table, data, ...other } = result.get();
+
+            assert.strictEqual(table.length, 9);
+            assert.deepStrictEqual((await data).map(value => value.toJSON()), globalD3Dsv.map((value, index) => {
+                return { ...value };
             }));
+            assert.deepStrictEqual(other, {
+                id: 2,
+                columns: ["time", "value"],
+                fileId: file.url
+            });
         });
         it("should return error with duplicate file id", async () => {
             const file = globalFile[1];
@@ -97,11 +118,11 @@ describe("storage handle test", () => {
 
             assert.deepStrictEqual(info, { ...file, strategy: "local" });
             assert.deepStrictEqual(local.get(), {
-                path: path.resolve(__dirname, file.url),
+                path: path.resolve(__dirname, "..", file.url),
                 fileId: file.url
             });
 
-            const { table, ...other } = database.get();
+            const { table, data, ...other } = database.get();
 
             idCache.push(table);
 
@@ -119,7 +140,7 @@ describe("storage handle test", () => {
 
             assert.deepStrictEqual(info, { ...file, local: null });
 
-            const { table, ...other } = database.get();
+            const { table, data, ...other } = database.get();
 
             idCache.push(table);
 
@@ -130,6 +151,39 @@ describe("storage handle test", () => {
             });
         });
     });
+    describe("updateStorage test", () => {
+        it("should update local storage path", async () => {
+            await fs.writeFile(path.resolve(__dirname, "fixtures/test-move"), '');
+
+            const result = await storageHandle.updateStorage(globalFile[0].url, path.resolve(__dirname, "fixtures/test-move"));
+
+            assert.strictEqual(result, true);
+        });
+        it("should update database storage table", async () => {
+            const localD3Dsv = [
+                { time: "test-time-01", value: "test-value-05" },
+                { time: "test-time-03", value: "test-value-03" },
+                { time: "test-time-10", value: "test-value-10" },
+                { time: "test-time-30", value: "test-value-30" },
+                { time: "test-time-40", value: "test-value-40" },
+                { time: "test-time-20", value: "test-value-20" },
+                { time: "test-time-04", value: "test-value-04" },
+                { time: "test-time-02", value: "test-value-02" },
+            ];
+            localD3Dsv.columns = ["time", "value"];
+
+            const result = await storageHandle.updateStorage(globalFile[0].url, localD3Dsv, "database");
+
+            assert.strictEqual(result, true);
+
+            const { data } = await Database.findOne({
+                where: {
+                    fileId: globalFile[0].url
+                }
+            });
+            assert.deepStrictEqual((await data).map(value => value.toJSON()), [...localD3Dsv]);
+        });
+    });
     describe("deleteStorage test", () => {
         it(`should return true and delete file: ${globalFile[0].url}`, async () => {
             const file = globalFile[0];
@@ -138,7 +192,7 @@ describe("storage handle test", () => {
             assert.strictEqual(result, true);
 
             await assert.rejects(async () => {
-                await fs.access(path.resolve(__dirname, file.url))
+                await fs.access(path.resolve(__dirname, "..", file.url))
             }, () => {
                 return true;
             });

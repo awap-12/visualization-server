@@ -1,7 +1,10 @@
 const debug = require("debug")("handle:localstorage");
 const { DataTypes, Model } = require("sequelize");
 const file = require("../../utils/file");
-const fs = require("node:fs/promises");
+const path = require("node:path");
+const sequelize = require("../../../../handles/model");
+
+const ROOT = path.resolve(__dirname, "../..");
 
 module.exports = sequelize => {
     class Local extends Model {
@@ -38,14 +41,19 @@ module.exports = sequelize => {
             unique: true
         }],
         hooks: {
-            async beforeValidate(instance) {
-                await fs.access(instance.path);
-                debug("validate success: find %s resource", instance.path);
+            async beforeCreate(instance) {
+                const target = path.join(ROOT, instance.getDataValue("fileId"));
+                await file.move(instance.path, target);
+                debug("move file: %s -> %s", instance.path, target);
+                instance.setDataValue("path", target);
             },
             async beforeUpdate(instance) {
-                const { path } = instance.sequelize.models.Local.findByPk(instance.id);
-                await file.move(path, instance.path);
-                debug("move file: %s -> %s", path, instance.path);
+                // update is more like override, not for updating data
+                const target = path.join(ROOT, instance.getDataValue("fileId"));
+                await file.move(instance.path, target);
+                debug("move file: %s -> %s", instance.path, target);
+                // update instance data for override import data
+                instance.set("path", target);
             },
             async beforeDestroy(instance) {
                 await file.remove(instance.path);

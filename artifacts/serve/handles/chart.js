@@ -1,16 +1,13 @@
+const debug = require("debug")("handle:chart")
 const fileHandle = require("../handles/file");
 const sequelize = require("./model");
 const { Op } = require("sequelize");
-const { move } = require("../utils/file");
-const { join, resolve } = require("node:path");
 
-const { Chart, File } = sequelize.models;
-
-const ROOT = resolve(__dirname, "..");
+const { Chart, ChartFile, File, Local, Database } = sequelize.models;
 
 /**
  * Get a chart by id. e.g. get chart by req query.
- * @param {number} id
+ * @param {string} id
  * @return {Promise<Model|boolean>}
  */
 async function getChartById(id) {
@@ -22,8 +19,8 @@ async function getChartById(id) {
 /**
  * Get a group of chart
  * @param {string} search
- * @param {number} limit
- * @param {[key:string,"DESC"|"ASC"|string][]|fn|col|literal} order
+ * @param {number} [limit]
+ * @param {[key:string,"DESC"|"ASC"|string][]|fn|col|literal} [order]
  * @return {Promise<Model[]|boolean>}
  */
 async function findChart(search, limit, order) {
@@ -71,7 +68,7 @@ async function createChart(user, name, description) {
 /**
  * Save a chart
  * @param {string} user
- * @param {{name:string,[info]:string,url:string,size:number}[]} files
+ * @param {{url:string,name:string,strategy?:string,info?:string,size:number,file:object}[]} files
  * @param {string} name
  * @param {string} [description]
  * @return {Promise<Model>}
@@ -79,14 +76,34 @@ async function createChart(user, name, description) {
 async function saveChart(user, files, name, description) {
     const chartResult = await createChart(user, name, description);
     // 1. save all files
-    const filesResult = await Promise.all(files.map(async ({ url, path, name, size, info }) => {
-        const saveFileResult = await fileHandle.saveFile(url, name, size, info);
-        if (!!saveFileResult) await move(path, join(ROOT, url));
-        return !saveFileResult ? await File.findByPk(url) : saveFileResult;
+    const filesResult = await Promise.all(files.map(async ({ url, ...options}) => {
+        const exists = await fileHandle.getFileByUrl(url);
+        return typeof exists === "boolean" ? await fileHandle.saveFile(url, { ...options, owner: chartResult.id }) : exists;
     }));
+    debug("save chart: %o, save file %o", chartResult.toJSON(), filesResult.map(value => value.toJSON()));
     // 3. bind new create to chart table
     await chartResult.addFile(filesResult);
-    return await Chart.findByPk(chartResult.id, { include: File });
+    return await Chart.findByPk(chartResult.id, {
+        include: {
+            model: File,
+            include: [
+                {
+                    attributes: {
+                        exclude: ["id"]
+                    },
+                    model: Local,
+                    as: "local"
+                },
+                {
+                    attributes: {
+                        exclude: ["id"]
+                    },
+                    model: Database,
+                    as: "database"
+                }
+            ]
+        }
+    });
 }
 
 /**
@@ -110,55 +127,76 @@ async function saveChart(user, files, name, description) {
  * clean linked old
  * ```
  * @param {string} id
- * @param {object} data array only for files
+ * @param {{
+ *          url:string,
+ *          operation?:"inserted"|"modified"|"deleted",
+ *          options:{url:string,name:string,strategy?:string,info?:string,size?:number}
+ *        }[]} [files]
+ * @param {name:string,description:string} data array only for files
  * @return {Promise<boolean>}
  */
-async function updateChart(id, data) {
-    const { files, ...other } = data; let result;
+async function updateChart(id, { files, ...data }) {
+    let result = [];
 
-    if (Object.keys(data).length > 0) {
-        const chartResult = await Chart.update(other, {
+    if (Object.keys(data).length > 0)
+        result.push((await Chart.update(data, {
             where: {
                 id: id
             }
-        });
-        result = chartResult.filter(Boolean).length > 0;
+        }))[0]);
+
+    if (Array.isArray(files)) {
+        result.push(...(await Promise.all(files.map(async ({ url, operation, options }) => {
+            switch (operation) {
+                case "inserted":
+                    const exists = await fileHandle.getFileByUrl(url);
+                    return typeof exists === "boolean" ? await fileHandle.saveFile(url, options) : true;
+                case "modified": {
+                    const { owner: currentOwner } = fileHandle.getFileByUrl(url);
+                    if (id === currentOwner) {
+                        // update by author
+                        return await fileHandle.updateFile(url, options);
+                    } else {
+                        // transfer ownership
+                        const chartResult = await getChartById(id);
+                        const filesResult = await fileHandle.saveFile(url, { ...options, owner: id });
+                        await chartResult.addFile(filesResult);
+                        debug("save chart: %o, save file %o", chartResult.toJSON(), filesResult.toJSON());
+                        return true;
+                    }
+                }
+                case "deleted": {
+                    const { owner: currentOwner } = fileHandle.getFileByUrl(url);
+                    const count = await ChartFile.count({
+                        where: {
+                            [Op.and]: [
+                                { chart_id: { [Op.ne]: id } },
+                                { file_url: url }
+                            ]
+                        }
+                    });
+                    debug("%s chart use file: %s", count, url);
+                    if (count <= 0) {
+                        return await fileHandle.deleteFile(url);
+                    } else {
+                        // broke the relation
+                        return await ChartFile.destroy({
+                            where: {
+                                [Op.and]: [
+                                    { chart_id: id },
+                                    { file_url: url }
+                                ]
+                            }
+                        });
+                    }
+                }
+                default:
+                    throw new Error("unknown file operation");
+            }
+        }))));
     }
 
-    if (!!files) {
-        // 1. save all files
-        const filesResult = await Promise.all(files.map(async ({ url, path, name, size, info }) => {
-            const saveFileResult = await fileHandle.saveFile(url, name, size, info, true);
-            const checkedResult = typeof saveFileResult === "boolean";
-            await move(path, join(ROOT, url));
-            return {
-                check: !checkedResult,
-                file: checkedResult ? await File.findByPk(url) : saveFileResult
-            }
-        }));
-        // 2. filter files which not new create
-        const newRecord = filesResult.filter(value => value.check).map(value => value.file);
-        // 3. bind new create to chart table
-        await (await Chart.findByPk(id)).addFile(newRecord);
-        // 4. get all inner join char and file
-        const { Files } = await Chart.findByPk(id, {
-            include: {
-                model: File,
-                attributes: ["url"],
-                include: Chart
-            },
-            attributes: []
-        });
-        // 5. filter not included and last one
-        await Promise.all(Files.map(async file => { // target file which linked to chart
-            if (!file.equalsOneOf(filesResult.map(value => value.file)) && file.Charts.length === 1) {
-               await file.destroy();
-            }
-        }));
-        return result || filesResult.length > 0;
-    } else {
-        return result;
-    }
+    return result.filter(Boolean).length > 0;
 }
 
 /**

@@ -12,7 +12,7 @@ async function exists(path) {
 
 module.exports = {
     async move(src, dest, { overwrite = true, directoryMode } = {}) {
-        if (!src || !dest) throw new TypeError('`src` and `dest` required');
+        if (!src || !dest) throw new TypeError("`src` and `dest` required");
         if (!overwrite && await exists(dest)) throw new Error(`The destination file exists: ${dest}`);
 
         await fs.mkdir(path.dirname(dest), {

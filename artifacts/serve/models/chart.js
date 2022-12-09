@@ -1,5 +1,8 @@
 const { DataTypes, Model } = require("sequelize");
 const base62 = require("../utils/base62");
+const base36 = require("../utils/base36");
+
+const CHART_ID_GENERATE_LENGTH = 6;
 
 module.exports = sequelize => {
     class Chart extends Model {
@@ -36,18 +39,11 @@ module.exports = sequelize => {
         timestamps: false,
         hooks: {
             async beforeCreate(instance) {
-                if (!!instance.id) return;
-                let result = null, flag = true;
-                while (flag) flag = !!await Chart.findByPk((result = base62(6)));
+                let result = instance.id ?? base62(CHART_ID_GENERATE_LENGTH), flag = true;
+                do {
+                    flag = !!await Chart.findByPk(result);
+                } while (flag && !!(result = base62(CHART_ID_GENERATE_LENGTH)));
                 instance.setDataValue("id", result);
-            },
-            async beforeBulkCreate(instances) {
-                for (const instance of instances) {
-                    if (!!instance.id) break;
-                    let result = null, flag = true;
-                    while (flag) flag = !!await Chart.findByPk((result = base62(6)));
-                    instance.setDataValue("id", result);
-                }
             },
             async beforeDestroy(instance) {
                 const { Files } = await Chart.findByPk(instance.id, {

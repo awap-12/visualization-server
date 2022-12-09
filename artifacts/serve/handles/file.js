@@ -1,6 +1,10 @@
-const { File, Local, Database } = require("./model").models;
+const debug = require("debug")("handle:file");
+const sequelize = require("./model");
 const storageHandle = require("../handles/storage");
+const filter = require("../utils/filter");
 const { Op } = require("sequelize");
+
+const { Chart, File, Local, Database } = sequelize.models;
 
 /**
  * Get a file by id, e.g.check if file exist when remove foreign key
@@ -21,13 +25,9 @@ async function getFileByUrl(url) {
 async function findFile(search, limit, order) {
     const { count, rows } = await File.findAndCountAll({
         where: {
-            [Op.or]: [
-                {
-                    name: {
-                        [Op.like]: `%${search}%`
-                    }
-                }
-            ]
+            name: {
+                [Op.like]: `%${search}%`
+            }
         },
         include: [
             {
@@ -84,45 +84,93 @@ async function getFile(limit, order) {
 }
 
 /**
- * Save a file, if file exist then update file data.
+ * Save a file with different strategy
+ * @example
+ * const result = await File.create({ url, strategy, ...data, [strategy]: { fileId: url, ...file } },{
+ *     include: {
+ *         model: sequelize.models[strategy.charAt(0).toUpperCase() + strategy.slice(1)],
+ *         as: strategy
+ *     }
+ * });
  * @param {string} url combine id of {@link Chart} with file name
- * @param {string} name
- * @param {string} strategy
- * @param {string} [info]
- * @param {number} size
- * @param {boolean} [force] force update data (danger)
- * @return {Promise<Model|boolean>}
+ * @param {"local"|"database"} [strategy]
+ * @param {string|Array} [file]
+ * @param {{name:string,info?:string,size?:number}} options
+ * @return {Promise<Model>}
  */
-async function saveFile(url, { name, strategy, info, size }, force = false) {
-    const option = Object.entries({ name, strategy, info, size }).reduce((obj, [key, value]) => {
-        if (!!value) obj[key] = value;
-        return obj;
-    }, {});
-
-    const [result, created] = await File.findOrCreate({
-        where: {
-            url: url
-        },
-        defaults: {
-            url, ...option
-        }
-    });
-
-    return created ? result : force ? await updateFile(url, option) : false;
+async function saveFile(url, { strategy = "local", file, ...data }) {
+    switch (strategy) {
+        case "local":
+            return await File.create({ url, strategy, ...data, local: { ...file, fileId: url }}, {
+                include: {
+                    model: Local,
+                    as: "local"
+                }
+            });
+        case "database":
+            const { name, columns, ...pureData } = file;
+            debug("create file: %o", file);
+            const result = await File.create({ url, strategy, ...data, database: { table: name, columns: columns, fileId: url }}, {
+                include: {
+                    model: Database,
+                    as: "database"
+                }
+            });
+            await sequelize.models[result.database.table].bulkCreate(Object.values(pureData));
+            return result;
+        default:
+            throw new TypeError(`save file with type ${strategy} not supported`);
+    }
 }
 
 /**
- * Update file
+ * Update file, If want to switch to another strategy, need to use {@link storageHandle}.
  * @param {string} url
- * @param {object} data
+ * @param {"local"|"database"} [strategy]
+ * @param {string|Array} [file]
+ * @param {{url:string,name:string,info?:string,size?:number}} data
  * @return {Promise<boolean>}
  */
-async function updateFile(url, data) {
-    const result = await File.update(data, {
-        where: {
-            url: url
+async function updateFile(url, { strategy, file, ...data }) {
+    let result = [];
+
+    if (!!file) {
+        const { strategy: currentStrategy, local, database } = await File.findByPk(url, {
+            include: [
+                { model: Local, as: "local" },
+                { model: Database, as: "database" }
+            ]
+        });
+        debug("get current file stage %o", (local ?? database).toJSON())
+        if (!!strategy && strategy !== currentStrategy) {
+            // switch strategy
+            // 1. remove old file
+            // 2. add new file
+            const modelName = currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1);
+            const dropResult = await sequelize.models[modelName].destroy({
+                where: {
+                    id: { local, database }[currentStrategy].id
+                }
+            });
+            if (!Boolean(dropResult)) throw new Error("unable to remove old file");
+            result.push(await storageHandle.saveStorage(url, file, strategy));
+            debug(`try drop old ${currentStrategy}: %s and add new ${strategy}`, Boolean(dropResult) ? "success" : "fail");
+        } else {
+            // use current strategy
+            result.push(await storageHandle.updateStorage(url, file, currentStrategy));
+            debug(`update current ${currentStrategy}`);
         }
-    });
+    }
+
+    if (Object.keys(data).length > 0) {
+        debug(`update file table %o`, data);
+        result.push((await File.update(filter({ strategy, ...data }), {
+            individualHooks: true,
+            where: {
+                url: url
+            }
+        }))[0]);
+    }
 
     return result.filter(Boolean).length > 0;
 }

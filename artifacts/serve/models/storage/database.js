@@ -38,6 +38,21 @@ module.exports = sequelize => {
             set(value) {
                 this.setDataValue("columns", Array.isArray(value) ? value.join(",") : value);
             }
+        },
+        data: {
+            type: DataTypes.VIRTUAL,
+            get() {
+                const tableName = this.getDataValue("table");
+                // pending, not require to execute each time
+                return sequelize.models[tableName].findAll({
+                    attributes: {
+                        exclude: ["id"]
+                    }
+                });
+            },
+            set() {
+                throw new Error("still in todo list, might be good to combine with file update");
+            }
         }
     }, {
         sequelize,
