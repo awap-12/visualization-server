@@ -6,10 +6,14 @@ module.exports = sequelize => {
     class File extends Model {
         static associate({ Chart, File }) {
             File.belongsToMany(Chart, {
-                through: ChartFile
+                through: ChartFile,
+                foreignKey: "fileUrl",
+                otherKey: "chartId"
             });
             Chart.belongsToMany(File, {
-                through: ChartFile
+                through: ChartFile,
+                foreignKey: "chartId",
+                otherKey: "fileUrl"
             });
         }
     }

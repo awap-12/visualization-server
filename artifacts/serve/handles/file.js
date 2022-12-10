@@ -1,7 +1,7 @@
 const debug = require("debug")("handle:file");
 const sequelize = require("./model");
 const storageHandle = require("../handles/storage");
-const filter = require("../utils/filter");
+const { undefinedFilter } = require("../utils/filter");
 const { Op } = require("sequelize");
 
 const { Chart, File, Local, Database } = sequelize.models;
@@ -29,22 +29,15 @@ async function findFile(search, limit, order) {
                 [Op.like]: `%${search}%`
             }
         },
-        include: [
-            {
-                attributes: {
-                    exclude: ["id"]
-                },
-                model: Local,
-                as: "local"
-            },
-            {
-                attributes: {
-                    exclude: ["id"]
-                },
-                model: Database,
-                as: "database"
-            }
-        ],
+        include: [{
+            attributes: { exclude: ["id"] },
+            model: Local,
+            as: "local"
+        }, {
+            attributes: { exclude: ["id"] },
+            model: Database,
+            as: "database"
+        }],
         order: order,
         limit: limit
     });
@@ -60,22 +53,15 @@ async function findFile(search, limit, order) {
  */
 async function getFile(limit, order) {
     const { count, rows } = await File.findAndCountAll({
-        include: [
-            {
-                attributes: {
-                    exclude: ["id"]
-                },
-                model: Local,
-                as: "local"
-            },
-            {
-                attributes: {
-                    exclude: ["id"]
-                },
-                model: Database,
-                as: "database"
-            }
-        ],
+        include: [{
+            attributes: { exclude: ["id"] },
+            model: Local,
+            as: "local"
+        }, {
+            attributes: { exclude: ["id"] },
+            model: Database,
+            as: "database"
+        }],
         order: order,
         limit: limit
     });
@@ -110,14 +96,17 @@ async function saveFile(url, { strategy = "local", file, ...data }) {
         case "database":
             const { name, columns, ...pureData } = file;
             debug("saveFile - create file: %o", { strategy, file, ...data });
-            const result = await File.create({ url, strategy, ...data, database: { table: name, columns: columns, fileId: url }}, {
-                include: {
-                    model: Database,
-                    as: "database"
-                }
+            return await sequelize.transaction(async trans => {
+                const result = await File.create({ url, strategy, ...data, database: { table: name, columns: columns, fileId: url }}, {
+                    transaction: trans,
+                    include: {
+                        model: Database,
+                        as: "database"
+                    }
+                });
+                await sequelize.models[result.database.table].bulkCreate(Object.values(pureData), { transaction: trans });
+                return result;
             });
-            await sequelize.models[result.database.table].bulkCreate(Object.values(pureData));
-            return result;
         default:
             throw new TypeError(`save file with type ${strategy} not supported`);
     }
@@ -133,6 +122,14 @@ async function saveFile(url, { strategy = "local", file, ...data }) {
  */
 async function updateFile(url, { strategy, file, ...data }) {
     let result = [];
+
+    if (Object.keys(data).length > 0)
+        result.push((await File.update(undefinedFilter({ strategy, ...data }), {
+            individualHooks: true,
+            where: {
+                url: url
+            }
+        }))[0]);
 
     if (!!file) {
         const { strategy: currentStrategy, local, database } = await File.findByPk(url, {
@@ -160,16 +157,6 @@ async function updateFile(url, { strategy, file, ...data }) {
             result.push(await storageHandle.updateStorage(url, file, currentStrategy));
             debug(`update current ${currentStrategy}`);
         }
-    }
-
-    if (Object.keys(data).length > 0) {
-        debug(`update file table %o`, data);
-        result.push((await File.update(filter({ strategy, ...data }), {
-            individualHooks: true,
-            where: {
-                url: url
-            }
-        }))[0]);
     }
 
     return result.filter(Boolean).length > 0;

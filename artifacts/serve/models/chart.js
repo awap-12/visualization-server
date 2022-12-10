@@ -1,6 +1,5 @@
 const { DataTypes, Model } = require("sequelize");
 const base62 = require("../utils/base62");
-const base36 = require("../utils/base36");
 
 const CHART_ID_GENERATE_LENGTH = 6;
 

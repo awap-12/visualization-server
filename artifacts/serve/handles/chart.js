@@ -14,22 +14,15 @@ async function getChartById(id) {
     const result = await Chart.findByPk(id, {
         include: {
             model: File,
-            include: [
-                {
-                    attributes: {
-                        exclude: ["id"]
-                    },
-                    model: Local,
-                    as: "local"
-                },
-                {
-                    attributes: {
-                        exclude: ["id"]
-                    },
-                    model: Database,
-                    as: "database"
-                }
-            ]
+            include: [{
+                attributes: { exclude: ["id"] },
+                model: Local,
+                as: "local"
+            }, {
+                attributes: { exclude: ["id"] },
+                model: Database,
+                as: "database"
+            }]
         }
     });
 
@@ -103,56 +96,31 @@ async function saveChart(user, files, name, description) {
     debug("save chart: %o, save file %o", chartResult.toJSON(), filesResult.map(value => value.toJSON()));
     // 3. bind new create to chart table
     await chartResult.addFile(filesResult);
-    return await Chart.findByPk(chartResult.id, {
-        include: {
-            model: File,
-            include: [
-                {
-                    attributes: {
-                        exclude: ["id"]
-                    },
-                    model: Local,
-                    as: "local"
-                },
-                {
-                    attributes: {
-                        exclude: ["id"]
-                    },
-                    model: Database,
-                    as: "database"
-                }
-            ]
-        }
-    });
+    // 4. get full image of chart.
+    return await getChartById(chartResult.id);
 }
 
 /**
  * Update chart
  *
- * when try to update files:
- * 1. we will resolve file in the routes and collect data to here
- * 2. do a loop
- * ```
- * used[] = collect dependence(files)
- * checked[] = empty
- * loop {
- *   if (target file exist)
- *     then should update
- *     checked.add(target file)
- *   else
- *     override and bind to chart
- *     checked.add(target file)
- * }
- * compare used and checked
- * clean linked old
- * ```
- * @param {string} id
+ * when operation is `insert`:
+ *   either url or options.url required for search or create a file.
+ *   options have to include file data in options meet {@link saveFile} structure.
+ *
+ * when operation is `modify`:
+ *   url is old target
+ *   options have to include a new url
+ *
+ * when operation is `delete`:
+ *   no options data require
+ *
+ * @param {string} id chart id
  * @param {{
  *          url:string,
- *          operation?:"inserted"|"modified"|"deleted",
- *          options:{url:string,name:string,strategy?:string,info?:string,size?:number}
+ *          operation?:"insert"|"modify"|"delete",
+ *          options?:{url:string,name:string,strategy?:string,info?:string,file:object}
  *        }[]} [files]
- * @param {name:string,description:string} data array only for files
+ * @param {name:string,description:string} data array only for chart
  * @return {Promise<boolean>}
  */
 async function updateChart(id, { files, ...data }) {
@@ -168,10 +136,14 @@ async function updateChart(id, { files, ...data }) {
     if (Array.isArray(files)) {
         result.push(...(await Promise.all(files.map(async ({ url, operation, options }) => {
             switch (operation) {
-                case "inserted":
-                    const exists = await fileHandle.getFileByUrl(url);
-                    return typeof exists === "boolean" ? await fileHandle.saveFile(url, options) : true;
-                case "modified": {
+                case "insert":
+                    const chartResult = await getChartById(id);
+                    const exists = await fileHandle.getFileByUrl(url ?? options.url);
+                    const filesResult = typeof exists === "boolean" ? await fileHandle.saveFile(url ?? options.url, { ...options, owner: id }) : exists;
+                    await chartResult.addFile(filesResult);
+                    debug("updateChart - save %s and get %o", url, filesResult.toJSON());
+                    return true;
+                case "modify": {
                     const { owner: currentOwner } = fileHandle.getFileByUrl(url);
                     if (id === currentOwner) {
                         // update by author
@@ -179,19 +151,35 @@ async function updateChart(id, { files, ...data }) {
                         return await fileHandle.updateFile(url, options);
                     } else {
                         // transfer ownership
+                        // 1. fork other's file -> create new file based on chart id
                         const chartResult = await getChartById(id);
-                        const filesResult = await fileHandle.saveFile(url, { ...options, owner: id });
-                        await chartResult.addFile(filesResult);
-                        debug("updateChart - save chart: %o, save file %o", chartResult.toJSON(), filesResult.toJSON());
-                        return true;
+                        const exists = await fileHandle.getFileByUrl(options.url);
+                        const filesResult = typeof exists === "boolean" ? await fileHandle.saveFile(options.url, { ...options, owner: id }) : exists;
+                        // 2. bind old url to the new url
+                        await ChartFile.update({ fileUrl: filesResult.url }, {
+                            where: {
+                                [Op.and]: [
+                                    { chartId: id },
+                                    { fileUrl: url }
+                                ]
+                            }
+                        });
+                        debug("updateChart - save file %o", filesResult.toJSON());
+                        // 3. check old file relationship, trigger remove if not exist
+                        const count = await ChartFile.count({
+                            where: {
+                                fileUrl: url
+                            }
+                        });
+                        return count <= 0 ? await fileHandle.deleteFile(url) : true;
                     }
                 }
-                case "deleted": {
+                case "delete": {
                     const count = await ChartFile.count({
                         where: {
                             [Op.and]: [
-                                { chart_id: { [Op.ne]: id } },
-                                { file_url: url }
+                                { chartId: { [Op.ne]: id } },
+                                { fileUrl: url }
                             ]
                         }
                     });
@@ -204,8 +192,8 @@ async function updateChart(id, { files, ...data }) {
                         return await ChartFile.destroy({
                             where: {
                                 [Op.and]: [
-                                    { chart_id: id },
-                                    { file_url: url }
+                                    { chartId: id },
+                                    { fileUrl: url }
                                 ]
                             }
                         });

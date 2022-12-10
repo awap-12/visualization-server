@@ -183,6 +183,21 @@ describe("storage handle test", () => {
             });
             assert.deepStrictEqual((await data).map(value => value.toJSON()), [...localD3Dsv]);
         });
+        it("should remove and create new database storage table", async () => {
+            const localD3Dsv = globalD3Dsv.map(({ time, value }) => ({ type: "test-type", time, value }));
+            localD3Dsv.columns = ["type", "time", "value"];
+
+            const result = await storageHandle.updateStorage(globalFile[0].url, localD3Dsv, "database");
+
+            assert.strictEqual(result, true);
+
+            const { data } = await Database.findOne({
+                where: {
+                    fileId: globalFile[0].url
+                }
+            });
+            assert.deepStrictEqual((await data).map(value => value.toJSON()), [...localD3Dsv]);
+        });
     });
     describe("deleteStorage test", () => {
         it(`should return true and delete file: ${globalFile[0].url}`, async () => {

@@ -1,3 +1,4 @@
+const debug = require("debug")("handle:storage");
 const sequelize = require("./model");
 const utils = require("node:util");
 
@@ -10,22 +11,15 @@ const { File, Local, Database } = sequelize.models;
  */
 async function getStorage(url) {
     const result = await File.findByPk(url, {
-        include: [
-            {
-                attributes: {
-                    exclude: ["id"]
-                },
-                model: Local,
-                as: "local"
-            },
-            {
-                attributes: {
-                    exclude: ["id"]
-                },
-                model: Database,
-                as: "database"
-            }
-        ]
+        include: [{
+            attributes: { exclude: ["id"] },
+            model: Local,
+            as: "local"
+        }, {
+            attributes: { exclude: ["id"] },
+            model: Database,
+            as: "database"
+        }]
     });
 
     return !!result ? result : false;
@@ -45,10 +39,12 @@ async function saveStorage(url, data, type = "local") {
         case "local":
             return await Local.create({ path: data, fileId: url });
         case "database":
-            const { name, columns, ...pureData } = data;
-            const result = await Database.create({ table: name, columns: columns, fileId: url });
-            await sequelize.models[result.table].bulkCreate(Object.values(pureData));
-            return result;
+            return await sequelize.transaction(async trans => {
+                const { name, columns, ...pureData } = data;
+                const result = await Database.create({ table: name, columns: columns, fileId: url }, { transaction: trans });
+                await sequelize.models[result.table].bulkCreate(Object.values(pureData), { transaction: trans });
+                return result;
+            });
         default:
             throw new TypeError(`save storage with type ${type} not supported`);
     }
@@ -71,15 +67,17 @@ async function updateStorage(url, data, type = "local") {
                         fileId: url
                     }
                 });
+
                 return true;
-            } catch {
+            } catch (err) {
+                debug("updateStorage - update %o", err);
                 return false;
             }
         case "database":
             // workflow, 1 -> update all, 2 -> upsert all
             try {
-                const { table, columns: currentColumns } = await Database.findOne({
-                    attributes: ["table", "columns"],
+                const { id, table, columns: currentColumns } = await Database.findOne({
+                    attributes: ["id", "table", "columns"],
                     where: {
                         fileId: url
                     }
@@ -87,15 +85,23 @@ async function updateStorage(url, data, type = "local") {
                 const { columns, ...pureData } = data;
 
                 if (!!columns && !utils.isDeepStrictEqual(columns, currentColumns)) {
-                    await deleteStorage(url);
+                    await Database.destroy({
+                        individualHooks: true,
+                        where: {
+                            id: id
+                        }
+                    });
                     await saveStorage(url, data, "database");
                 } else {
-                    await sequelize.models[table].destroy({ truncate: true });
-                    await sequelize.models[table].bulkCreate(Object.values(pureData));
+                    await sequelize.transaction(async trans => {
+                        await sequelize.models[table].destroy({ transaction: trans, truncate: true });
+                        await sequelize.models[table].bulkCreate(Object.values(pureData), { transaction: trans });
+                    });
                 }
 
                 return true;
-            } catch {
+            } catch (err) {
+                debug("updateStorage - update %o", err);
                 return false;
             }
         default:

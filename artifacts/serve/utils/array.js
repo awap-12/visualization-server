@@ -27,26 +27,6 @@ function removeArrayItem(array, item) {
     array.splice(array.indexOf(item), 1);
 }
 
-function reconstructArray(array, differences, inPlace = false) {
-    const temp = inPlace ? array : array.slice();
-    differences.forEach(([operation, index, value]) => {
-        switch (operation) {
-            case "inserted":
-                temp.splice(index, 0, value);
-                break;
-            case "deleted":
-                temp.splice(index, 1);
-                break;
-            case "modified":
-                temp[index] = value;
-                break;
-            default:
-                throw new Error("unknown operation")
-        }
-    });
-    return temp;
-}
-
 module.exports = {
     arrayDiff(arrayA, arrayB, comparisonFn = (x, y) => utils.isDeepStrictEqual(x,y)) {
         if (!Array.isArray(arrayA) || !Array.isArray(arrayB))
