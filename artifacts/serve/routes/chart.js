@@ -43,7 +43,7 @@ router.post("/", upload.array("attachment"), async (req, res, next) => {
         let { id, name, description, files = [] } = req.body;
 
         // TODO: is it possible to handle multipart by express json middleware?
-        files = await Promise.all(files.map(async file => typeof file === "string" ? JSON.parse(file) : file ?? {}));
+        files = await Promise.all((Array.isArray(files) ? files : [files]).map(async file => typeof file === "string" ? JSON.parse(file) : file ?? {}));
         debug("resolve body: id: %d; name: %s; description: %s; files: %o;", id, name, description, files);
 
         const chartResult = await chartHandle.createChart(id, { name, description });
@@ -69,7 +69,7 @@ router.put("/", upload.array("attachment"), async (req, res, next) => {
         let { id, name, description, files = [] } = req.body;
 
         // TODO: is it possible to handle multipart by express json middleware?
-        files = await Promise.all(files.map(async file => typeof file === "string" ? JSON.parse(file) : file ?? {}));
+        files = await Promise.all((Array.isArray(files) ? files : [files]).map(async file => typeof file === "string" ? JSON.parse(file) : file ?? {}));
         debug("resolve body: id: %s; name: %s; description: %s; files: %o;", id, name, description, files);
 
         files = await Promise.all(files.map(async ({ scope, operation, url, options }) => {

@@ -150,6 +150,14 @@ describe("chart route test", () => {
     });
     describe("PUT /", () => {
         it("should update chart primary data", done => {
+            agent
+                .put("/")
+                .field("id", chartIdCache[0])
+                .field("name", "other-name")
+                .field("description", "other-desc")
+                .expect(200, done);
+        });
+        it("should update chart file data with insert and modify option", done => {
             const localD3Dsv = [
                 { time: "test-time-01", value: "test-value-05" },
                 { time: "test-time-03", value: "test-value-03" },
@@ -165,7 +173,6 @@ describe("chart route test", () => {
             agent
                 .put("/")
                 .field("id", chartIdCache[0])
-                .field("name", "other-name")
                 .field("files", [
                     {
                         operation: "insert",
@@ -185,14 +192,17 @@ describe("chart route test", () => {
                     }].map(value => JSON.stringify(value))
                 )
                 .attach("attachment", path.resolve(__dirname, "fixtures/foo.csv"))
-                .expect(200)
-                .end((err, res) => {
-                    if (err) return done(err);
-
-                    assert.strictEqual(res.body, true);
-
-                    done();
-                });
+                .expect(200, done);
+        });
+        it("should update chart file data with delete option", done => {
+            agent
+                .put("/")
+                .field("id", chartIdCache[0])
+                .field("files", JSON.stringify({
+                    url: `static/${chartIdCache[0]}/Foo.csv`,
+                    operation: "delete",
+                }))
+                .expect(200, done);
         });
     });
     describe("DELETE /:id", () => {
