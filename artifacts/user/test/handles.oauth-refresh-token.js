@@ -16,8 +16,8 @@ describe("oauth refresh token handle test", () => {
     };
     before("database create", async () => {
         await sequelize.sync({ force: true });
-        await User.bulkCreate([globalUser]);
-        await OAuthClient.bulkCreate([globalClient]);
+        await User.create(globalUser);
+        await OAuthClient.create(globalClient);
     });
     after("database clean", async () => sequelize.drop());
     it(`should save refresh token ${globalToken}`, async () => {

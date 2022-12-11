@@ -40,12 +40,11 @@ module.exports = sequelize => {
         tableName: "oauth_client",
         timestamps: false,
         hooks: {
-            beforeCreate(instance) {
-                if (!!instance.id) return;
-                let result = null, flag = null;
-                while (flag === null) {
-                    flag = OAuthClient.findByPk((result = base62(CLIENT_ID_GENERATE_LENGTH)));
-                }
+            async beforeCreate(instance) {
+                let result = instance.id ?? base62(CLIENT_ID_GENERATE_LENGTH), flag = true;
+                do {
+                    flag = !!await OAuthClient.findByPk(result);
+                } while (flag && !!(result = base62(CLIENT_ID_GENERATE_LENGTH)));
                 instance.setDataValue("id", result);
             }
         }
