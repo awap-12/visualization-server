@@ -66,28 +66,27 @@ async function getChart(limit, order) {
 /**
  * Create a chart
  * @param {string} user
- * @param {string} name
- * @param {string} [description]
+ * @param {{name:string,description:string}} data
  * @return {Promise<Model>}
  */
-async function createChart(user, name, description) {
-    return await Chart.create({
-        name: name,
-        description: description,
-        userId: user
-    });
+async function createChart(user, { name, description }) {
+    if (!!name && !!description)
+        return await Chart.create({
+            name: name,
+            description: description,
+            userId: user
+        });
 }
 
 /**
  * Save a chart
  * @param {string} user
  * @param {{url:string,name:string,strategy?:string,info?:string,size:number,file:object}[]} files
- * @param {string} name
- * @param {string} [description]
+ * @param {{name:string,description:string}|string} data
  * @return {Promise<Model>}
  */
-async function saveChart(user, files, name, description) {
-    const chartResult = await createChart(user, name, description);
+async function saveChart(user, files, data) {
+    const chartResult = await createChart(user, data) ?? await getChartById(data);
     // 1. save all files
     const filesResult = await Promise.all(files.map(async ({ url, ...options}) => {
         const exists = await fileHandle.getFileByUrl(url);
@@ -138,21 +137,20 @@ async function updateChart(id, { files, ...data }) {
             switch (operation) {
                 case "insert":
                     const chartResult = await getChartById(id);
-                    const exists = await fileHandle.getFileByUrl(url ?? options.url);
-                    const filesResult = typeof exists === "boolean" ? await fileHandle.saveFile(url ?? options.url, { ...options, owner: id }) : exists;
+                    const exists = await fileHandle.getFileByUrl((url ??= options.url));
+                    const filesResult = typeof exists === "boolean" ? await fileHandle.saveFile(url, { ...options, owner: id }) : exists;
                     await chartResult.addFile(filesResult);
                     debug("updateChart - save %s and get %o", url, filesResult.toJSON());
                     return true;
                 case "modify": {
-                    const { owner: currentOwner } = fileHandle.getFileByUrl(url);
+                    const { owner: currentOwner } = await fileHandle.getFileByUrl(url);
                     if (id === currentOwner) {
                         // update by author
-                        debug("updateChart - update file %s with options", url, options);
+                        debug("updateChart - update file %s with options %o", url, options);
                         return await fileHandle.updateFile(url, options);
                     } else {
                         // transfer ownership
                         // 1. fork other's file -> create new file based on chart id
-                        const chartResult = await getChartById(id);
                         const exists = await fileHandle.getFileByUrl(options.url);
                         const filesResult = typeof exists === "boolean" ? await fileHandle.saveFile(options.url, { ...options, owner: id }) : exists;
                         // 2. bind old url to the new url

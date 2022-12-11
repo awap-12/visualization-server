@@ -81,12 +81,13 @@ async function getFile(limit, order) {
  * @param {string} url combine id of {@link Chart} with file name
  * @param {"local"|"database"} [strategy]
  * @param {string|Array} [file]
- * @param {{name:string,info?:string,size?:number}} options
+ * @param {{name:string,info?:string,owner?:string}} options
  * @return {Promise<Model>}
  */
 async function saveFile(url, { strategy = "local", file, ...data }) {
     switch (strategy) {
         case "local":
+            debug("saveFile - create file: %o", { url, strategy, ...data, local: { ...file, fileId: url }});
             return await File.create({ url, strategy, ...data, local: { ...file, fileId: url }}, {
                 include: {
                     model: Local,
@@ -95,7 +96,7 @@ async function saveFile(url, { strategy = "local", file, ...data }) {
             });
         case "database":
             const { name, columns, ...pureData } = file;
-            debug("saveFile - create file: %o", { strategy, file, ...data });
+            debug("saveFile - create file: %o", { url, strategy, ...data, database: { table: name, columns: columns, fileId: url }});
             return await sequelize.transaction(async trans => {
                 const result = await File.create({ url, strategy, ...data, database: { table: name, columns: columns, fileId: url }}, {
                     transaction: trans,

@@ -44,7 +44,8 @@ async function collect(ref, root) {
         ref.push({
             url: path.posix.relative(STATIC_ROOT_POSIX.slice(0, -6), root.split(path.sep).join("/")),
             name: path.parse(root).name,
-            size: (await fs.stat(path.resolve(STATIC_ROOT, root))).size
+            strategy: "local",
+            owner: root.split(path.sep).slice(-2, -1)
         });
         return;
     }
@@ -66,8 +67,8 @@ module.exports = async () => {
         }
         for (const tempFile of tempFiles) {
             tempChartFile.push({
-                FileUrl: tempFile.url,
-                ChartId: folderName
+                fileUrl: tempFile.url,
+                chartId: folderName
             });
         }
         debug("inject %o %o", tempChart, tempFiles);
@@ -78,10 +79,10 @@ module.exports = async () => {
     await Chart.bulkCreate(charts);
     await File.bulkCreate(files);
     await ChartFile.bulkCreate([...chartFiles, {
-        FileUrl: "static/base03/Co2Annual.csv",
-        ChartId: "base04"
+        fileUrl: "static/base03/Co2Annual.csv",
+        chartId: "base04"
     }, {
-        FileUrl: "static/base03/Co2Monthly.csv",
-        ChartId: "base04"
+        fileUrl: "static/base03/Co2Monthly.csv",
+        chartId: "base04"
     }]);
 };

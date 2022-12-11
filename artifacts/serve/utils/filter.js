@@ -1,3 +1,5 @@
+const { types } = require("node:util");
+
 function isCollection(value) {
     return Array.isArray(value) || (value != null && typeof value === "object");
 }
@@ -13,13 +15,15 @@ const filter = module.exports = {
      * @return {array|object}
      */
     filterCollection(value, fn) {
+        const isAsync = types.isAsyncFunction(fn);
+
         if (Array.isArray(value)) {
-            return filter.filterArray(value, fn);
+            return isAsync ? filter.filterArrayAsync(value, fn) :  filter.filterArray(value, fn);
         } else if (value != null && typeof value === "object") {
-            return filter.filterObject(value, fn);
+            return isAsync ? filter.filterObjectAsync(value, fn) : filter.filterObject(value, fn);
         }
 
-        return value;
+        return isAsync ? Promise.resolve(value) : value;
     },
     /**
      * Filter object
@@ -30,16 +34,30 @@ const filter = module.exports = {
     filterObject(obj, fn) {
         const newObj = {};
 
-        Object.keys(obj).forEach(key => {
+        for (const key in obj) {
             let value = filter.filterCollection(obj[key], fn);
-
             if (fn.call(obj, value, key, obj)) {
                 if (value !== obj[key] && !isCollection(value))
                     value = obj[key];
 
                 newObj[key] = value;
             }
-        });
+        }
+
+        return newObj;
+    },
+    async filterObjectAsync(obj, fn) {
+        const newObj = {};
+
+        for (const key in obj) {
+            let value = await filter.filterCollection(obj[key], fn);
+            if (await fn.call(obj, value, key, obj)) {
+                if (value !== obj[key] && !isCollection(value))
+                    value = obj[key];
+
+                newObj[key] = value;
+            }
+        }
 
         return newObj;
     },
@@ -52,16 +70,32 @@ const filter = module.exports = {
     filterArray(array, fn) {
         const filtered = [];
 
-        array.forEach((value, index, array) => {
-            value = filter.filterCollection(value, fn);
+        for (let i = 0; i < array.length; i++) {
+            let value = filter.filterCollection(array[i], fn);
 
-            if (fn.call(array, value, index, array)) {
-                if (value !== array[index] && !isCollection(value))
-                    value = array[index];
+            if (fn.call(array, value, i, array)) {
+                if (value !== array[i] && !isCollection(value))
+                    value = array[i];
 
                 filtered.push(value);
             }
-        });
+        }
+
+        return filtered;
+    },
+    async filterArrayAsync(array, fn) {
+        const filtered = [];
+
+        for (let i = 0; i < array.length; i++) {
+            let value = await filter.filterCollection(array[i], fn);
+
+            if (await fn.call(array, value, i, array)) {
+                if (value !== array[i] && !isCollection(value))
+                    value = array[i];
+
+                filtered.push(value);
+            }
+        }
 
         return filtered;
     },

@@ -4,9 +4,6 @@ const fileHandle = require("../handles/file");
 const assert = require("node:assert");
 const fs = require("node:fs/promises");
 const path = require("node:path");
-const { types } = require("node:util");
-const { filterCollection } = require("../utils/filter");
-const {database} = require("../../../config/database");
 
 const { User, Chart } = sequelize.models;
 
@@ -55,11 +52,11 @@ describe("chart handle test", () => {
         it("should create a new chart with local storage and move temp file `fixtures/test.foo` to `fixtures/test-01`", async () => {
             const { file, ...other } = globalFile[0];
 
-            const result = await chartHandle.saveChart(1, [globalFile[0]], globalChart.name, globalChart.description);
+            const result = await chartHandle.saveChart(1, [globalFile[0]], globalChart);
 
             /* inspector */ {
                 inspector.push(result.toJSON());
-                console.dir(inspector, {depth: null, colors: true});
+                console.dir(inspector, { depth: null, colors: true });
             }
 
             const { id, Files, ...chart } = result.get();
@@ -86,11 +83,14 @@ describe("chart handle test", () => {
         it("should create a new chart use shared file with local storage", async () => {
             const { file, ...other } = globalFile[0];
 
-            const result = await chartHandle.saveChart(1, [globalFile[0]], "other-chart-name", "other-chart-desc");
+            const result = await chartHandle.saveChart(1, [globalFile[0]], {
+                name: "other-chart-name",
+                description: "other-chart-desc"
+            });
 
             /* inspector */ {
                 inspector.push(result.toJSON());
-                console.dir(inspector, {depth: null, colors: true});
+                console.dir(inspector, { depth: null, colors: true });
             }
 
             const { id, Files, ...chart } = result.get();
@@ -114,7 +114,7 @@ describe("chart handle test", () => {
             });
         });
         it("should create a chart and use multiple files, a shared file and another new database storage", async () => {
-            const result = await chartHandle.saveChart(1, globalFile, globalChart.name, globalChart.description);
+            const result = await chartHandle.saveChart(1, globalFile, globalChart);
 
             /* inspector */ {
                 inspector.push({
