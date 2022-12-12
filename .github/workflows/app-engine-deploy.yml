@@ -1,0 +1,29 @@
+name: Google Cloud App Engine
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - uses: 'actions/checkout@v3'
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        service_account: '${{ secrets.GCP_ACCOUNT }}'
+
+    - id: 'deploy'
+      name: 'Deploy code to App Engine'
+      uses: 'google-github-actions/deploy-appengine@v1'
