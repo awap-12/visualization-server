@@ -63,8 +63,6 @@ describe("storage handle test", () => {
             await assert.rejects(async () => {
                 await storageHandle.saveStorage(file.url, path.resolve(__dirname, "unknown.balabala"), file.strategy);
             }, err => {
-                assert.strictEqual(err.errno, -4058)
-                assert.strictEqual(err.code, "ENOENT");
                 return true;
             });
         });
