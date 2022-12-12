@@ -28,8 +28,8 @@ jobs:
       - name: Set up database
         run: |
           sudo /etc/init.d/mysql start
-          mysql -e 'CREATE DATABASE ${{ env.MYSQL_DATABASE }};' -u${{ env.MYSQL_USER }} -p${{ env.MYSQL_PASSWORD }}
-          mysql -e 'SHOW DATABASES;' -u${{ env.MYSQL_USER }} -p${{ env.MYSQL_PASSWORD }}
+          mysql -e 'CREATE DATABASE ${{ env.DATABASE_URL }};' -u${{ env.DATABASE_USER }} -p${{ env.DATABASE_PASSWORD }}
+          mysql -e 'SHOW DATABASES;' -u${{ env.DATABASE_USER }} -p${{ env.DATABASE_PASSWORD }}
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
