@@ -1,10 +1,10 @@
 name: Google Cloud App Engine
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  workflow_run:
+    workflows: [Node.js CI]
+    types:
+      - completed
 
 jobs:
   deploy:
@@ -23,7 +23,7 @@ jobs:
       uses: 'google-github-actions/auth@v1'
       with:
         workload_identity_provider: '${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
-        service_account: '${{ secrets.GCP_ACCOUNT }}'
+        service_account: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
 
     - id: 'deploy'
       name: 'Deploy code to App Engine'

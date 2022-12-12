@@ -11,9 +11,11 @@
         "minimist": "latest"
     },
     "devDependencies": {
-        "cross-env": "latest"
+        "cross-env": "latest",
+        "mocha": "latest"
     },
     "scripts": {
-        "start": "cross-env DEBUG=*,-sequelize:*,-koa:* node bin/www"
+        "start": "node bin/www",
+        "test": "cross-env NODE_ENV=development mocha artifacts/**/test/*.js"
     }
 }

@@ -27,7 +27,7 @@ function server(port) {
 }
 
 function development(port) {
-    const databaseConfig = require("../../config/database");
+    const { dialect, pool, ...databaseConfig } = require("../../config/database");
     const sequelize = require("./handles/model");
     const mysql = require("mysql2");
 
