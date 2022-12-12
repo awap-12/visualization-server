@@ -2,5 +2,5 @@ runtime: nodejs16
 service: server
 entrypoint: npm start
 env_variables:
-  DATABASE_SOCKET_PATH: /cloudsql/clean-trail-371322:europe-north1:visualization-database
+  DATABASE_SOCKET_PATH: /cloudsql/visualization-awap-12:europe-west1:visualization-database
   DATABASE_PASSWORD: CloudSQLPSW1
