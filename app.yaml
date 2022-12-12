@@ -1,0 +1,6 @@
+runtime: nodejs18
+service: server
+entrypoint: node index.js
+env_variables:
+  DATABASE_SOCKET_PATH: /cloudsql/clean-trail-371322:europe-north1:visualization-database
+  DATABASE_PASSWORD: CloudSQLPSW1

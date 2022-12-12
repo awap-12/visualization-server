@@ -31,11 +31,9 @@ function development(port) {
     const sequelize = require("./handles/model");
     const mysql = require("mysql2");
 
-    const { host, user, password, database } = databaseConfig;
+    const connection = mysql.createConnection({ ...databaseConfig, database: "information_schema" });
 
-    const connection = mysql.createConnection({ host, user, password, database: "information_schema" });
-
-    connection.query(`create schema if not exists ${database}`, err => {
+    connection.query(`create schema if not exists ${databaseConfig.database}`, err => {
         if (!!err) process.exit(err.errno);
         sequelize.sync({ force: true }).then(() => server(port));
     });
