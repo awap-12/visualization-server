@@ -1,4 +1,4 @@
-runtime: nodejs18
+runtime: nodejs16
 service: server
 entrypoint: npm start
 env_variables:
