@@ -15,9 +15,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
-      MYSQL_DATABASE: awap
+      DATABASE_USER: root
+      DATABASE_PASSWORD: root
+      DATABASE_URL: awap
 
     strategy:
       matrix:
