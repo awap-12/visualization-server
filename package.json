@@ -16,6 +16,6 @@
     },
     "scripts": {
         "start": "node bin/www",
-        "test": "cross-env NODE_ENV=development mocha artifacts/**/test/*.js"
+        "test": "cross-env NODE_ENV=development mocha artifacts/**/test/*.js --exit"
     }
 }
