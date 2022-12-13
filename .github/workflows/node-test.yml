@@ -30,12 +30,17 @@ jobs:
           sudo /etc/init.d/mysql start
           mysql -e 'CREATE DATABASE ${{ env.DATABASE_URL }};' -u${{ env.DATABASE_USER }} -p${{ env.DATABASE_PASSWORD }}
           mysql -e 'SHOW DATABASES;' -u${{ env.DATABASE_USER }} -p${{ env.DATABASE_PASSWORD }}
+
       - uses: actions/checkout@v3
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+
       - run: npm ci
+
       - run: npm run build --if-present
+
       - run: npm test
