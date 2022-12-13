@@ -38,7 +38,7 @@ jobs:
         env_variables:
           DATABASE_SOCKET_PATH: /cloudsql/${{ env.DATABASE_CONNECTION_NAME }}
           DATABASE_PASSWORD: ${{ env.DATABASE_PASSWORD }}
-        EOL        
+        EOL
 
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
