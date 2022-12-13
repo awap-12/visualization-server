@@ -5,10 +5,7 @@
         "artifacts/*"
     ],
     "dependencies": {
-        "debug": "latest",
-        "http-proxy": "latest",
-        "json-socket": "latest",
-        "minimist": "latest"
+        "sequelize": "latest"
     },
     "devDependencies": {
         "cross-env": "latest",

@@ -1,0 +1,21 @@
+{
+    "name": "default",
+    "version": "1.0.0",
+    "dependencies": {
+        "debug": "latest",
+        "http-proxy": "latest",
+        "json-socket": "latest",
+        "minimist": "latest"
+    },
+    "devDependencies": {
+        "@types/http-proxy": "latest",
+        "@types/json-socket": "latest",
+        "@types/minimist": "latest",
+        "cross-env": "latest",
+        "mocha": "latest"
+    },
+    "scripts": {
+        "prestart": "node bin/parse.js",
+        "start:base": "cross-env NODE_ENV=development node index.js"
+    }
+}

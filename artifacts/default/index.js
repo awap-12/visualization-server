@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 const debug = require("debug")("entrance");
 const http = require("node:http");
-const app = require("../app.js");
-const config = require("../config/server.js");
+const app = require("./cluster/app.js");
+const config = require("./handles/worker.js");
 
 const port = normalizePort(process.env.PORT || "3000");
 

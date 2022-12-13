@@ -1,6 +1,6 @@
+const { resolve, dirname } = require("node:path");
 const { EventEmitter } = require("node:events");
 const { spawn } = require("node:child_process");
-const { resolve } = require("node:path");
 const cluster = require("node:cluster");
 
 class Thread extends EventEmitter {
@@ -140,11 +140,11 @@ class Thread extends EventEmitter {
         try {
             const workerId = this.config.threadArgs.worker;
             if (this.workers[workerId].params) {
-                const module = require(workerId);
+                const module = require(resolve(dirname(this.config.mainFile), workerId));
                 if (typeof module == "function")
                     module.apply(module, this.workers[workerId].params);
             } else {
-                require(workerId);
+                require(resolve(dirname(this.config.mainFile), workerId));
             }
         } catch (err) {
             setTimeout(() => {
