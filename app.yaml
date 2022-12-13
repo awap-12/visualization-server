@@ -1,6 +1,0 @@
-runtime: nodejs16
-service: default
-entrypoint: npm start
-env_variables:
-  DATABASE_SOCKET_PATH: /cloudsql/visualization-awap-12:europe-north1:visualization-database
-  DATABASE_PASSWORD: CloudSQLPSW1

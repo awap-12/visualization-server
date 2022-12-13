@@ -17,7 +17,7 @@ function server(port) {
 
     app.use("/", (req, res) => res.sendFile(path.resolve(__dirname, "view/index.html")));
 
-    app.use("/chart", chartRoute)
+    app.use("/chart", chartRoute);
 
     // static folder mapping.
     app.use("/static", express.static(path.resolve(__dirname, "static")));
@@ -52,3 +52,4 @@ function production(port) {
 }
 
 module.exports = isDev ? development(3000) : production;
+module.exports.server = server;

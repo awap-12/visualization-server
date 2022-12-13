@@ -50,3 +50,4 @@ function production(port) {
 }
 
 module.exports = isDev ? development(3000) : production;
+module.exports.server = server;

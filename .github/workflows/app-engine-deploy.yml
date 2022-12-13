@@ -13,12 +13,32 @@ jobs:
 
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
+    env:
+      DATABASE_CONNECTION_NAME: visualization-awap-12:europe-north1:visualization-database
+      DATABASE_PASSWORD: CloudSQLPSW1
+
+    strategy:
+      matrix:
+        service: [default]
+        entrypoint: ["npm start"]
+
     permissions:
       contents: 'read'
       id-token: 'write'
 
     steps:
     - uses: 'actions/checkout@v3'
+
+    - name: 'Create config file'
+      run: |
+        cat >> app.yaml <<EOL
+        runtime: nodejs16
+        service: ${{ matrix.service }}
+        entrypoint: ${{ matrix.entrypoint }}
+        env_variables:
+          DATABASE_SOCKET_PATH: /cloudsql/${{ env.DATABASE_CONNECTION_NAME }}
+          DATABASE_PASSWORD: ${{ env.DATABASE_PASSWORD }}
+        EOL        
 
     - id: 'auth'
       name: 'Authenticate to Google Cloud'
