@@ -38,7 +38,7 @@ describe("chart handle test", () => {
     let ownerCache= [], idCache = [], inspector = [];
     before("database create", async () => {
         await sequelize.sync({ force: true });
-        await User.bulkCreate([{ name: `test-name`, password: `test-password` }]);
+        await User.create({ name: "test-name", password: "test-password" });
     });
     after("database clean", async () => {
         try {

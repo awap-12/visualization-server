@@ -23,7 +23,8 @@ router.get("/:id", async (req, res, next) => {
 
         const result = await chartHandle.getPreview(id);
 
-        res.status(200).json(!!result ? result.toJSON() : false);
+        res.contentType(result.type);
+        res.status(200).send(!!result ? result.data : false);
     } catch (err) {
         debug("get method params: %o with error %o", req.params, err);
         next(err);
