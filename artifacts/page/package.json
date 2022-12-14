@@ -1,11 +1,14 @@
 {
     "name": "page",
     "version": "1.0.0",
+    "main": "app.js",
     "dependencies": {
+        "ejs": "latest",
+        "express": "latest",
         "mysql2": "latest",
-        "express": "latest"
+        "morgan": "latest"
     },
     "scripts": {
-        "start": "node index.js"
+        "start:page": "node bin/www"
     }
 }
