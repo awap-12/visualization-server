@@ -35,9 +35,12 @@ jobs:
       run: |
         cat >> app.yaml <<EOL
         runtime: nodejs18
-        basic_scaling:
+        instance_class: F4
+        automatic_scaling:
           max_instances: 2
-          idle_timeout: 10m
+          target_cpu_utilization: 0.8
+          min_pending_latency: 900ms
+          max_concurrent_requests: 50
         service: ${{ matrix.service }}
         entrypoint: ${{ matrix.entrypoint }}
         env_variables:
