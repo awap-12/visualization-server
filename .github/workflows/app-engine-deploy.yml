@@ -48,6 +48,7 @@ jobs:
           DATABASE_PASSWORD: ${{ env.DATABASE_PASSWORD }}
           SERVER_HOST: 0.0.0.0
           DEBUG: '*,-sequelize:*,-koa:*,-express:*'
+          TEMP: /tmp
         EOL
 
     - id: 'auth'
