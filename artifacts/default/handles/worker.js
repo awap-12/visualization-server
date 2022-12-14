@@ -1,5 +1,5 @@
-const debug = require("debug")("config:server");
-const serverConfig = require("../../../config/cluster");
+const serverConfig = require("server/config/service");
+const Balancer = require("../utils/balancer");
 const workersCache = {}, rulesCache = {};
 
 const config = {
@@ -9,16 +9,33 @@ const config = {
     },
     get rules() {
         return rulesCache;
+    },
+    set rules([server, port]) {
+        const prefix = serverConfig[server].prefix;
+        if (prefix in rulesCache) {
+            const rule = rulesCache[prefix];
+            rule.address.push(`http://localhost:${port}`);
+            rule.balancer = new Balancer(rule.address.length);
+        } else {
+            rulesCache[prefix] = {
+                address: [`http://localhost:${port}`],
+                balancer: {
+                    pick() {
+                        return 0;
+                    }
+                }
+            };
+        }
     }
 };
 
-for (const [key, value] of Object.entries(config)) {
+for (const [key, { port, maxForks }] of Object.entries(config)) {
     if (key === "workers" || key === "rules") continue;
-    workersCache[key] = { maxForks: value.maxForks, params: [value.port] };
-    rulesCache[value.prefix] = `http://localhost:${value.port}`;
+    workersCache[key] = {
+        maxForks: maxForks ?? 0,
+        params: [port ?? 0]
+    };
 }
-
-debug("rules: %o; workers: %o", config.rules, config.workers);
 
 module.exports = config;
 module.exports.config = config;

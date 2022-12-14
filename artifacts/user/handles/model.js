@@ -1,1 +1,1 @@
-module.exports = require("../../../handles/model");
+module.exports = require("server/handles/model");

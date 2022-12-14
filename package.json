@@ -5,6 +5,7 @@
         "artifacts/*"
     ],
     "dependencies": {
+        "server": "file:.",
         "sequelize": "latest"
     },
     "devDependencies": {
@@ -12,7 +13,6 @@
         "mocha": "latest"
     },
     "scripts": {
-        "start": "node bin/www",
         "test": "cross-env NODE_ENV=development mocha artifacts/**/test/*.js --exit"
     }
 }

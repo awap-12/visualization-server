@@ -11,11 +11,12 @@
         "@types/http-proxy": "latest",
         "@types/json-socket": "latest",
         "@types/minimist": "latest",
-        "cross-env": "latest",
-        "mocha": "latest"
+        "chai": "latest",
+        "cross-env": "latest"
     },
     "scripts": {
-        "prestart": "node bin/parse.js",
-        "start:base": "cross-env NODE_ENV=development node index.js"
+        "generate": "node bin/parse.js",
+        "start:default": "cross-env DEBUG=*,-sequelize:*,-koa:*,-express:* node bin/www",
+        "test:default": "cross-env NODE_ENV=development mocha test/*.js"
     }
 }

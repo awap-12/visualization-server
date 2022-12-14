@@ -1,7 +1,7 @@
 {
     "name": "user",
     "version": "1.0.0",
-    "main": "index.js",
+    "main": "app.js",
     "dependencies": {
         "debug": "latest",
         "koa": "latest",
@@ -13,8 +13,7 @@
         "mysql2": "latest",
         "nunjucks": "latest",
         "oauth2-server": "latest",
-        "sequelize": "latest",
-        "validator": "latest"
+        "sequelize": "latest"
     },
     "devDependencies": {
         "@types/koa": "latest",
@@ -25,12 +24,11 @@
         "@types/koa-static": "latest",
         "@types/oauth2-server": "latest",
         "@types/sequelize": "latest",
-        "@types/validator": "latest",
         "mocha": "latest",
         "supertest": "latest"
     },
     "scripts": {
-        "start:user": "cross-env NODE_ENV=development DEBUG=*,-sequelize:*,-koa:* node index.js",
+        "start:user": "cross-env DEBUG=*,-sequelize:*,-koa:* node bin/www",
         "test:user": "cross-env NODE_ENV=development mocha test/*.js"
     }
 }

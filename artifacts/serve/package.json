@@ -1,11 +1,12 @@
 {
     "name": "serve",
     "version": "1.0.0",
-    "main": "index.js",
+    "main": "app.js",
     "dependencies": {
         "camelcase": "latest",
         "compression": "latest",
         "express": "latest",
+        "morgan": "latest",
         "multer": "latest",
         "mysql2": "latest",
         "sequelize": "latest"
@@ -13,13 +14,14 @@
     "devDependencies": {
         "@types/compression": "latest",
         "@types/express": "latest",
-        "@types/sequelize": "latest",
+        "@types/morgan": "latest",
         "@types/multer": "latest",
+        "@types/sequelize": "latest",
         "mocha": "latest",
         "supertest": "latest"
     },
     "scripts": {
-        "start:serve": "cross-env NODE_ENV=development DEBUG=*,-sequelize:*,-express:* node index.js",
+        "start:serve": "cross-env DEBUG=*,-sequelize:*,-express:* node bin/www",
         "test:serve": "cross-env NODE_ENV=development mocha test/*.js"
     }
 }
