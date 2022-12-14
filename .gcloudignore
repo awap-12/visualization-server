@@ -12,7 +12,9 @@
 .git
 .gitignore
 
+# Document generate related
 docs
+mkdocs.yml
 
 node_modules
 
