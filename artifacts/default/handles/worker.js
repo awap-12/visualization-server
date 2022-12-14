@@ -2,6 +2,8 @@ const serverConfig = require("server/config/service");
 const Balancer = require("../utils/balancer");
 const workersCache = {}, rulesCache = {};
 
+const { SERVER_HOST: host = "localhost" } = process.env;
+
 const config = {
     ...serverConfig, // no need deep copy
     get workers() {
@@ -14,11 +16,11 @@ const config = {
         const prefix = serverConfig[server].prefix;
         if (prefix in rulesCache) {
             const rule = rulesCache[prefix];
-            rule.address.push(`http://localhost:${port}`);
+            rule.address.push(`http://${host}:${port}`);
             rule.balancer = new Balancer(rule.address.length);
         } else {
             rulesCache[prefix] = {
-                address: [`http://localhost:${port}`],
+                address: [`http://${host}:${port}`],
                 balancer: {
                     pick() {
                         return 0;
