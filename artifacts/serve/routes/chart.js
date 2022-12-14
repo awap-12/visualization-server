@@ -5,15 +5,13 @@ const express = require("express");
 const multer = require("multer");
 const { extname, resolve, parse, posix } = require("node:path");
 
-const TEMP = resolve(__dirname, "..", "tmp");
-
 const upload = multer({
     fileFilter: (req, file, callback) => {
         const acceptableMime = [".csv", ".dsv", ".tsv"];
         callback(null, acceptableMime.includes(extname(file.originalname)));
     },
     storage: multer.diskStorage({
-        destination: TEMP,
+        // destination: os.tmpdir()
         filename(req, file, callback) {
             let { name, ext } = parse(file.originalname);
             const pascalCaseName = camelCase(name, { pascalCase: true });
@@ -23,6 +21,17 @@ const upload = multer({
 });
 
 const router = express.Router();
+
+router.get("/", async (req, res, next) => {
+    try {
+        const result = await chartHandle.getChart(20);
+
+        res.status(200).json(!!result ? result.map(value => value.toJSON()) : result);
+    } catch (err) {
+        debug("get all method with error %o", err);
+        next(err);
+    }
+});
 
 router.get("/:id", async (req, res, next) => {
     try {
@@ -35,7 +44,19 @@ router.get("/:id", async (req, res, next) => {
         debug("get method params: %o with error %o", req.params, err);
         next(err);
     }
+});
 
+router.post("/search", async (req, res, next) => {
+    try {
+        const { search, limit, order } = req.body;
+
+        const result = await chartHandle.findChart(search, limit, order);
+
+        res.status(200).json(!!result ? result.map(value => value.toJSON()) : result);
+    } catch (err) {
+        debug("search method body: %o with error %o", req.params, err);
+        next(err);
+    }
 });
 
 router.post("/", upload.array("attachment"), async (req, res, next) => {

@@ -1,6 +1,6 @@
+const { resolve, dirname } = require("node:path");
 const { EventEmitter } = require("node:events");
 const { spawn } = require("node:child_process");
-const { resolve } = require("node:path");
 const cluster = require("node:cluster");
 
 class Thread extends EventEmitter {
@@ -10,8 +10,9 @@ class Thread extends EventEmitter {
     /**
      * Initialize a new thread.
      * @param {string} execFile
+     * @param {string} workersDir
      */
-    constructor(execFile) {
+    constructor(execFile, workersDir = '') {
         super();
 
         this.EV_FORKED = "thread.forked";
@@ -33,6 +34,7 @@ class Thread extends EventEmitter {
             threadArgs: require("minimist")(process.argv.slice(2)),
             clusterArgs: structuredClone(process.argv).slice(2),
             mainFile: execFile,
+            workersDir: resolve(dirname(execFile), workersDir),
             binPath: resolve(process.execPath),
             spawnOptions: {
                 env: { ...process.env, DEBUG_COLORS: 1 },
@@ -140,11 +142,11 @@ class Thread extends EventEmitter {
         try {
             const workerId = this.config.threadArgs.worker;
             if (this.workers[workerId].params) {
-                const module = require(workerId);
+                const module = require(resolve(this.config.workersDir, workerId));
                 if (typeof module == "function")
                     module.apply(module, this.workers[workerId].params);
             } else {
-                require(workerId);
+                require(resolve(this.config.workersDir, workerId));
             }
         } catch (err) {
             setTimeout(() => {
@@ -457,5 +459,5 @@ class Thread extends EventEmitter {
     }
 }
 
-module.exports = exec => new Thread(exec);
+module.exports = (execFile, workersDir) => new Thread(execFile, workersDir);
 module.exports.thread = Thread;
