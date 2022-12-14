@@ -103,6 +103,51 @@ describe("chart route test", () => {
                 });
         });
     });
+    describe("GET /", () => {
+        it("should get all chart", done => {
+            agent
+                .get("/")
+                .expect(200)
+                .end((err, res) => {
+                    if (err) return done(err);
+
+                    console.dir(res.body, { depth: null, colors: true });
+
+                    const [result] = res.body;
+
+                    assert.deepStrictEqual(result, {
+                        ...globalChart,
+                        userId: 1,
+                        id: chartIdCache[0]
+                    });
+
+                    done();
+                });
+        });
+    });
+    describe("POST /search", () => {
+        it("should search a file", done => {
+            agent
+                .post("/search")
+                .expect(200)
+                .send({ search: "name" })
+                .end((err, res) => {
+                    if (err) return done(err);
+
+                    console.dir(res.body, { depth: null, colors: true });
+
+                    const [result] = res.body;
+
+                    assert.deepStrictEqual(result, {
+                        ...globalChart,
+                        userId: 1,
+                        id: chartIdCache[0]
+                    });
+
+                    done();
+                });
+        });
+    });
     describe("GET /:id", () => {
         it("should get a chart", done => {
             agent

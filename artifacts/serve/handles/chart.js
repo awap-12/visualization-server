@@ -52,8 +52,8 @@ async function findChart(search, limit, order) {
 
 /**
  * TODO: Better to design some kind of ordering
- * @param {number} limit
- * @param {[key:string,"DESC"|"ASC"|string][]|fn|col|literal} order
+ * @param {number} limit?
+ * @param {[key:string,"DESC"|"ASC"|string][]|fn|col|literal} order?
  * @return {Promise<Model[]|boolean>}
  */
 async function getChart(limit, order) {

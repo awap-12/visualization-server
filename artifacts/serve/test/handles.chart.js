@@ -161,8 +161,80 @@ describe("chart handle test", () => {
             ownerCache.push(owners);
         });
     });
+    describe("getChart test", () => {
+        let mapping;
+        before(() => {
+            mapping = {
+                [idCache[0]]: {
+                    ...globalChart,
+                    userId: 1
+                },
+                [idCache[1]]: {
+                    name: "other-chart-name",
+                    description: "other-chart-desc",
+                    userId: 1
+                },
+                [idCache[2]]: {
+                    ...globalChart,
+                    userId: 1
+                }
+            };
+        });
+        it("should get all chart", async () => {
+            const result = await chartHandle.getChart();
+
+            for (let i = 0; i < result.length; i++) {
+                const { id, ...other } = result[i].toJSON();
+                assert.deepStrictEqual(other, mapping[id]);
+            }
+        });
+        it("should get a chart", async () => {
+            const result = await chartHandle.getChart(1);
+
+            assert.strictEqual(result.length, 1);
+        });
+        it("should get chart with order", async () => {
+            const result = await chartHandle.getChart(undefined, [["id", "DESC"]]), collector =[];
+
+            for (let i = 0; i < result.length; i++) {
+                const { id, ...other } = result[i].toJSON();
+                collector.push(id);
+                assert.deepStrictEqual(other, mapping[id]);
+            }
+
+            console.log(collector);
+        });
+    });
+    describe("findChart test", () => {
+        let mapping;
+        before(() => {
+            mapping = {
+                [idCache[0]]: {
+                    ...globalChart,
+                    userId: 1
+                },
+                [idCache[2]]: {
+                    ...globalChart,
+                    userId: 1
+                }
+            };
+        });
+        it("should search chart with `test`", async () => {
+            const result = await chartHandle.findChart("test");
+
+            for (let i = 0; i < result.length; i++) {
+                const { id, ...other } = result[i].toJSON();
+                assert.deepStrictEqual(other, mapping[id]);
+            }
+        });
+        it("should return false with bad search", async () => {
+            const result = await chartHandle.findChart("balabalabala");
+
+            assert.strictEqual(result, false);
+        });
+    });
     describe("getChartById test", () => {
-        it(`should get the first created chart`, async () => {
+        it("should get the first created chart", async () => {
             const { file, ...other} = globalFile[0];
             const result = await chartHandle.getChartById(idCache[0]);
 
@@ -188,7 +260,7 @@ describe("chart handle test", () => {
                 path: path.resolve(__dirname, "..", other.url)
             });
         });
-        it(`should get the chart which created by multiple files`, async () => {
+        it("should get the chart which created by multiple files", async () => {
             const result = await chartHandle.getChartById(idCache[2]);
 
             const { Files, ...chart } = result.get();
@@ -447,7 +519,7 @@ describe("chart handle test", () => {
         });
     });
     describe("deleteChart test", () => {
-        it(`should return true and remove`, async () => {
+        it("should return true and remove", async () => {
             const result = await chartHandle.deleteChart(idCache[0]);
 
             assert.strictEqual(result, true);
