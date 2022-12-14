@@ -1,5 +1,6 @@
 const debug = require("debug")("handle:model");
 const databaseConfig  = require("../config/database");
+const modelConfig = require("../config/model");
 const highlight = require("../utils/sql");
 const { Sequelize } = require("sequelize");
 
@@ -19,4 +20,4 @@ const sequelize = new Sequelize(databaseConfig.database, databaseConfig.user, da
     }
 });
 
-module.exports = sequelize;
+module.exports = modelConfig(sequelize);

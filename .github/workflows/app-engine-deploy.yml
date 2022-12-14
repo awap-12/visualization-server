@@ -20,7 +20,9 @@ jobs:
     strategy:
       matrix:
         service: [default]
-        entrypoint: ["npm start"]
+        entrypoint: [
+          "node artifacts/default/bin/www"
+        ]
 
     permissions:
       contents: 'read'
@@ -32,12 +34,13 @@ jobs:
     - name: 'Create config file'
       run: |
         cat >> app.yaml <<EOL
-        runtime: nodejs16
+        runtime: nodejs18
         service: ${{ matrix.service }}
         entrypoint: ${{ matrix.entrypoint }}
         env_variables:
           DATABASE_SOCKET_PATH: /cloudsql/${{ env.DATABASE_CONNECTION_NAME }}
           DATABASE_PASSWORD: ${{ env.DATABASE_PASSWORD }}
+          SERVER_HOST: 0.0.0.0
         EOL
 
     - id: 'auth'
