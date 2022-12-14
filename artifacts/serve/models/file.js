@@ -1,9 +1,4 @@
-const debug = require("debug")("handle:file");
 const { DataTypes, Model } = require("sequelize");
-const path = require("node:path");
-const fs = require("node:fs");
-
-const ROOT = path.resolve(__dirname, "..");
 
 module.exports = sequelize => {
     const ChartFile = sequelize.define("ChartFile", {}, { timestamps: false, underscored: true });
@@ -11,10 +6,14 @@ module.exports = sequelize => {
     class File extends Model {
         static associate({ Chart, File }) {
             File.belongsToMany(Chart, {
-                through: ChartFile
+                through: ChartFile,
+                foreignKey: "fileUrl",
+                otherKey: "chartId"
             });
             Chart.belongsToMany(File, {
-                through: ChartFile
+                through: ChartFile,
+                foreignKey: "chartId",
+                otherKey: "fileUrl"
             });
         }
     }
@@ -30,35 +29,47 @@ module.exports = sequelize => {
             type: DataTypes.STRING,
             allowNull: false
         },
+        strategy: {
+            type: DataTypes.ENUM("local", "database"),
+            defaultValue: "local",
+            allowNull: false
+        },
         info: {
             type: DataTypes.STRING,
             defaultValue: ''
         },
-        // for file same detect
-        size: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0
+        owner: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     }, {
         sequelize,
         tableName: "file",
         timestamps: false,
         hooks: {
-            afterDestroy(instance) {
-                const filePath = path.join(ROOT, instance.url);
-                fs.access(filePath, err => {
-                    if (!err) {
-                        fs.unlink(filePath, err => {
-                            if (!err) {
-                                debug("remove %s", filePath);
-                            } else {
-                                debug("unable to remove %s", filePath);
+            async beforeDestroy(instance, options) {
+                // Because destroy with foreign key not able to trigger model hooks
+                // So, we have to remove all instances by hand.
+                // IMPORTANT !! remember not add CASCADE or hooks into relationship
+                const { File, Local, Database } = instance.sequelize.models;
+                const { local, database } = await File.findByPk(instance.url, {
+                    include: [
+                        { model: Local, as: "local" },
+                        { model: Database, as: "database" }
+                    ]
+                });
+                await Promise.all(Object.entries({ local, database }).map(async ([key, value]) => {
+                    if (!!value) {
+                        const modelName = key.charAt(0).toUpperCase() + key.slice(1);
+                        sequelize.models[modelName].destroy({
+                            individualHooks: true,
+                            where: {
+                                id: value.id
                             }
                         });
-                    } else {
-                        debug("can not find %s", filePath);
                     }
-                });
+                    //if (!!value) await value.destroy({ where: { id: value.id } });
+                }));
             }
         }
     });

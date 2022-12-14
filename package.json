@@ -5,15 +5,14 @@
         "artifacts/*"
     ],
     "dependencies": {
-        "debug": "latest",
-        "http-proxy": "latest",
-        "json-socket": "latest",
-        "minimist": "latest"
+        "server": "file:.",
+        "sequelize": "latest"
     },
     "devDependencies": {
-        "cross-env": "latest"
+        "cross-env": "latest",
+        "mocha": "latest"
     },
     "scripts": {
-        "start": "cross-env DEBUG=*,-sequelize:*,-koa:* node bin/www"
+        "test": "cross-env NODE_ENV=development mocha artifacts/**/test/*.js --exit"
     }
 }

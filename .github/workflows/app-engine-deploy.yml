@@ -1,0 +1,63 @@
+name: Google Cloud App Engine
+
+on:
+  workflow_run:
+    workflows: [Node.js CI]
+    types:
+      - completed
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    env:
+      DATABASE_CONNECTION_NAME: visualization-awap-12:europe-north1:visualization-database
+      DATABASE_PASSWORD: CloudSQLPSW1
+
+    strategy:
+      matrix:
+        service: [default]
+        entrypoint: [
+          "node artifacts/default/bin/www"
+        ]
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - uses: 'actions/checkout@v3'
+
+    - name: 'Create config file'
+      run: |
+        cat >> app.yaml <<EOL
+        runtime: nodejs18
+        instance_class: F4
+        automatic_scaling:
+          max_instances: 2
+          target_cpu_utilization: 0.8
+          min_pending_latency: 900ms
+          max_concurrent_requests: 50
+        service: ${{ matrix.service }}
+        entrypoint: ${{ matrix.entrypoint }}
+        env_variables:
+          DATABASE_SOCKET_PATH: /cloudsql/${{ env.DATABASE_CONNECTION_NAME }}
+          DATABASE_PASSWORD: ${{ env.DATABASE_PASSWORD }}
+          SERVER_HOST: 0.0.0.0
+          DEBUG: '*,-sequelize:*,-koa:*,-express:*'
+          TEMP: /tmp
+        EOL
+
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        workload_identity_provider: '${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}'
+        service_account: '${{ secrets.GCP_SERVICE_ACCOUNT }}'
+
+    - id: 'deploy'
+      name: 'Deploy code to App Engine'
+      uses: 'google-github-actions/deploy-appengine@v1'
