@@ -11,6 +11,8 @@ const proxy = require("http-proxy").createProxyServer();
 module.exports = function (req, res) {
     const path = req.url, rules = config.rules;
 
+    if (Object.keys(rules).length < 1) return;
+
     function getTarget(prefix) {
         const rule = rules[prefix], target = rule.address[rule.balancer.pick()];
         debug("balanced target %o", target);
