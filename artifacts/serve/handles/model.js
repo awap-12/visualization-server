@@ -26,6 +26,8 @@ function development() {
         /** Serve models */
         Chart: require("../models/chart")(sequelize),
         File: require("../models/file")(sequelize),
+        Local: require("../models/storage/local")(sequelize),
+        Database: require("../models/storage/database")(sequelize),
         /** User models */
         User: require("user/models/user")(sequelize)
     }

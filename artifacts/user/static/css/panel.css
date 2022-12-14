@@ -44,7 +44,7 @@
 }
 
 #panel-input input {
-    width: 230px;
+    width: 200px;
     outline: none;
     border: none;
     font-size: 14px;
@@ -61,6 +61,16 @@
     border: 1px solid #e7e7e7;
     border-radius: 0 0 8px 8px;
     height: 43px;
+}
+
+#panel-input > .password > .left {
+    display: flex;
+    align-items: center;
+}
+
+#panel-input > .password > .left > img {
+    height: 0.75rem;
+    margin: 0 6px;
 }
 
 #panel-input > .password > .forget {
@@ -165,6 +175,11 @@
         height: 100vh;
         background: white;
         border-radius: 0;
+    }
+
+    #panel-input .left {
+        justify-content: space-around;
+        margin-right: 12px;
     }
 
     #panel-input .left,

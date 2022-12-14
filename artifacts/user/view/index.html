@@ -4,66 +4,108 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link rel="stylesheet" type="text/css" href="{{ basePath }}/css/panel.css">
+
+    <link rel="stylesheet" type="text/css" href="{{ basePath }}/css/app.css">
     <link rel="stylesheet" type="text/css" href="{{ basePath }}/css/image.css">
-    <script src="{{ basePath }}/js/image.js" defer></script>
-</head>
-<body style="margin: 0">
-<div class="background" data-large="{{ image.large }}">
-    <img src="{{ image.small }}" class="small" alt="Background">
-</div>
-<main class="panel">
-    <div class="panel-title">Visualization</div>
-    <form id="panel-input">
-        <div class="account">
-            <span>Account</span>
-            <input type="text" name="name" placeholder="username" autocomplete="off" maxlength="16" spellcheck="false">
-        </div>
-        <div class="password">
-            <div class="left">
-                <span>Password</span>
-                <input type="password" name="password" placeholder="password" autocomplete="off" maxlength="45" spellcheck="false">
-            </div>
-            <span class="forget">fogot?</span>
-        </div>
-    </form>
-    <div class="panel-login">
-        <div class="register">Register</div>
-        <div class="login">Login</div></div>
-    <div class="panel-third">
-        <div class="title">Third-party</div>
-        <div class="sns"><span class="github">Github</span><span class="google">Google</span></div>
-    </div>
-</main>
-</body>
-<script defer>
-    const registerElement = document.querySelector(".panel-login .register");
-    const loginElement = document.querySelector(".panel-login .login");
-    const loginInputElement = document.querySelector("#panel-input .password input");
+    <link rel="stylesheet" type="text/css" href="{{ basePath }}/css/panel.css">
 
-    function submitInfo(target = "") {
-        fetch(`{{ basePath }}${target}`, {
-            method: "POST",
-            body: new URLSearchParams(new FormData(document.getElementById("panel-input"))),
-            redirect: "follow"
-        }).then(raw => raw.json()).then(result => {
-            if (!result) return;
-            console.log(result);
-        });
-    }
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
 
-    registerElement.addEventListener("click", () => {
-        submitInfo("/register");
-    });
-    loginElement.addEventListener("click", () => {
-        submitInfo(`/oauth/authorize?{{ query }}`);
-    });
-    loginInputElement.addEventListener("keypress", event => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            loginElement.click();
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script defer type="text/babel">
+
+        function AuthPanel() {
+            const [formData, setFormData] = React.useState({ account: '', password: '' });
+            const [show, setShow] = React.useState(false);
+            const passwordRef = React.useRef();
+
+            function submitInfo(target = "") {
+                fetch(`{{ basePath }}${target}`, {
+                    method: "POST",
+                    body: new URLSearchParams(new FormData(document.getElementById("panel-input"))),
+                    redirect: "follow"
+                }).then(raw => raw.json()).then(result => {
+                    if (!result) return;
+                    console.log(result);
+                });
+            }
+
+            function handleChange(event) {
+                setFormData({ ...formData, [event.target.name]: event.target.value });
+            }
+
+            function showPassword() {
+                setShow(!show)
+                passwordRef.current.type = show ? "password" : "text";
+            }
+
+            return (
+                <main className="panel">
+                    <div className="panel-title">Visualization</div>
+                    <form id="panel-input">
+                        <div className="account">
+                            <span>Account</span>
+                            <input type="text" name="account" onChange={handleChange} value={formData.account} placeholder="username" autoComplete="off" maxLength="16" spellCheck="false" />
+                        </div>
+                        <div className="password">
+                            <div className="left">
+                                <span>Password</span>
+                                <input ref={passwordRef} type="password" name="password" onChange={handleChange} value={formData.password} placeholder="password" autoComplete="off" maxLength="20" spellCheck="false" />
+                                {show ? <img src="{{ basePath }}/img/eye.svg" onClick={showPassword} /> : <img src="{{ basePath }}/img/eye-slash.svg" onClick={showPassword} />}
+                            </div>
+                            <span className="forget">fogot?</span>
+                        </div>
+                    </form>
+                    <div className="panel-login">
+                        <div onClick={() => submitInfo("/register")} className="register">Register</div>
+                        <div onClick={() => submitInfo("/oauth/authorize?{{ query }}")} className="login">Login</div>
+                    </div>
+                    <div className="panel-third">
+                        <div className="title">Third-party</div>
+                        <div className="sns">
+                            <span className="github">Github</span>
+                            <span className="google">Google</span>
+                        </div>
+                    </div>
+                </main>
+            )
         }
-    });
 
-</script>
+        function App() {
+            const smallBackgroundRef = React.useRef();
+            const backgroundRef = React.useRef();
+
+            React.useEffect(() => {
+                let img = new Image();
+                img.src = smallBackgroundRef.current.src;
+                img.onload = () => smallBackgroundRef.current.classList.add("loaded");
+
+                let imgLarge = new Image();
+                imgLarge.src = backgroundRef.current.dataset.large;
+                imgLarge.alt = "Large Background"
+                imgLarge.onload = () => imgLarge.classList.add("loaded");
+
+                backgroundRef.current.append(imgLarge);
+            }, []);
+
+            return (
+                <div className="App">
+                    <div ref={backgroundRef} className="background" data-large="{{ image.large }}">
+                        <img ref={smallBackgroundRef} src="{{ image.small }}" className="small" alt="Background" />
+                    </div>
+                    <AuthPanel />
+                </div>
+            )
+        }
+
+        const root = ReactDOM.createRoot(document.querySelector("#root"));
+        root.render(<App />);
+
+    </script>
+</head>
+<body>
+<div id="root"></div>
+</body>
 </html>
