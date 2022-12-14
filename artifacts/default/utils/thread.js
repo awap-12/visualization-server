@@ -32,7 +32,7 @@ class Thread extends EventEmitter {
 
         this.config = {
             threadArgs: require("minimist")(process.argv.slice(2)),
-            clusterArgs: JSON.parse(JSON.stringify(process.argv)).slice(2),
+            clusterArgs: structuredClone(process.argv).slice(2),
             mainFile: execFile,
             workersDir: resolve(dirname(execFile), workersDir),
             binPath: resolve(process.execPath),
@@ -400,7 +400,7 @@ class Thread extends EventEmitter {
      * @param {object} workers
      */
     start(workers) {
-        this.workers = JSON.parse(JSON.stringify(workers));
+        this.workers = structuredClone(workers);
         if (cluster.isSpawn || cluster.isFork) {
             cluster.options = this.workers[this.config.threadArgs.worker].options || {};
             this.spawnFork();
