@@ -1,8 +1,0 @@
-{
-    "name": "member-a",
-    "version": "1.0.0",
-    "dependencies": {
-        "express": "latest",
-        "node-fetch": "latest"
-    }
-}

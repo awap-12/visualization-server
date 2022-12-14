@@ -23,5 +23,7 @@ module.exports = sequelize => {
     }
 
     debug("models relation linked");
+
+    return sequelize;
 };
 
