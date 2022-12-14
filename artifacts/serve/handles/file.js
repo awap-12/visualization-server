@@ -1,7 +1,7 @@
 const debug = require("debug")("handle:file");
-const sequelize = require("./model");
 const storageHandle = require("../handles/storage");
 const { undefinedFilter } = require("../utils/filter");
+const sequelize = require("./model");
 const { Op } = require("sequelize");
 
 const { Chart, File, Local, Database } = sequelize.models;

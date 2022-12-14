@@ -5,8 +5,8 @@
         "artifacts/*"
     ],
     "dependencies": {
-        "server": "file:.",
-        "sequelize": "latest"
+        "sequelize": "latest",
+        "server": "file:."
     },
     "devDependencies": {
         "cross-env": "latest",

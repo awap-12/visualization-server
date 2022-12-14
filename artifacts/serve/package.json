@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "main": "app.js",
     "dependencies": {
+        "debug": "latest",
         "camelcase": "latest",
         "compression": "latest",
         "express": "latest",

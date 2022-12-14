@@ -3,12 +3,23 @@
     "version": "1.0.0",
     "main": "app.js",
     "dependencies": {
-        "ejs": "latest",
+        "debug": "latest",
         "express": "latest",
+        "morgan": "latest",
+        "multer": "latest",
         "mysql2": "latest",
-        "morgan": "latest"
+        "sequelize": "latest"
+    },
+    "devDependencies": {
+        "@types/express": "latest",
+        "@types/morgan": "latest",
+        "@types/multer": "latest",
+        "@types/sequelize": "latest",
+        "mocha": "latest",
+        "supertest": "latest"
     },
     "scripts": {
-        "start:page": "node bin/www"
+        "start:page": "cross-env DEBUG=*,-sequelize:*,-express:* node bin/www",
+        "test:page": "cross-env NODE_ENV=development mocha test/*.js"
     }
 }
