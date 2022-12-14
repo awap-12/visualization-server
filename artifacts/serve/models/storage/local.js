@@ -41,22 +41,17 @@ module.exports = sequelize => {
         }],
         hooks: {
             async beforeCreate(instance) {
-                const target = path.join(ROOT, instance.getDataValue("fileId"));
-                await file.move(instance.path, target);
-                debug("move file: %s -> %s", instance.path, target);
+                const target = await file.move(instance.path, instance.getDataValue("fileId"));
                 instance.setDataValue("path", target);
             },
             async beforeUpdate(instance) {
                 // update is more like override, not for updating data
-                const target = path.join(ROOT, instance.getDataValue("fileId"));
-                await file.move(instance.path, target);
-                debug("move file: %s -> %s", instance.path, target);
+                const target = await file.move(instance.path, instance.getDataValue("fileId"));
                 // update instance data for override import data
                 instance.set("path", target);
             },
             async beforeDestroy(instance) {
                 await file.remove(instance.path);
-                debug("remove file: %s", instance.path);
             }
         }
     });

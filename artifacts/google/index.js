@@ -1,5 +1,5 @@
 const file = require("./storage/file");
+const app = require("./app");
 
-module.exports = {
-    file
-}
+module.exports = app;
+module.exports.file = file;
