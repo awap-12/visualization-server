@@ -3,7 +3,7 @@ const chartHandle = require("../handles/chart");
 const camelCase = require("camelcase");
 const express = require("express");
 const multer = require("multer");
-const { extname, resolve, parse, posix } = require("node:path");
+const { extname, parse, posix } = require("node:path");
 
 const upload = multer({
     fileFilter: (req, file, callback) => {

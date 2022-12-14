@@ -1,9 +1,5 @@
-const debug = require("debug")("handle:localstorage");
 const { DataTypes, Model } = require("sequelize");
 const file = require("../../utils/file");
-const path = require("node:path");
-
-const ROOT = path.resolve(__dirname, "../..");
 
 module.exports = sequelize => {
     class Local extends Model {

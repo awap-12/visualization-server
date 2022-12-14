@@ -1,4 +1,4 @@
-const debug = require("debug")("util:file");
+const debug = require("debug")("handle:localstorage");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 
