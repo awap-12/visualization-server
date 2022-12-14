@@ -5,15 +5,13 @@ const express = require("express");
 const multer = require("multer");
 const { extname, resolve, parse, posix } = require("node:path");
 
-const { TEMP: temp = resolve(__dirname, "..", "tmp") } = process.env;
-
 const upload = multer({
     fileFilter: (req, file, callback) => {
         const acceptableMime = [".csv", ".dsv", ".tsv"];
         callback(null, acceptableMime.includes(extname(file.originalname)));
     },
     storage: multer.diskStorage({
-        destination: temp,
+        // destination: os.tmpdir()
         filename(req, file, callback) {
             let { name, ext } = parse(file.originalname);
             const pascalCaseName = camelCase(name, { pascalCase: true });
