@@ -35,6 +35,7 @@ jobs:
       run: |
         cat >> app.yaml <<EOL
         runtime: nodejs18
+        instance_class: F4
         service: ${{ matrix.service }}
         entrypoint: ${{ matrix.entrypoint }}
         env_variables:
