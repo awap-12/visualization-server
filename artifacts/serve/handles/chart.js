@@ -1,4 +1,4 @@
-const debug = require("debug")("handle:chart")
+const debug = require("debug")("handle:chart");
 const fileHandle = require("../handles/file");
 const sequelize = require("./model");
 const { Op } = require("sequelize");

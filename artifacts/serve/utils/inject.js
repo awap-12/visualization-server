@@ -76,7 +76,7 @@ module.exports = async () => {
         files.push(...tempFiles);
         chartFiles.push(...tempChartFile);
     }
-    await Chart.bulkCreate(charts);
+    await Chart.bulkCreate(charts, { individualHooks: true });
     await File.bulkCreate(files);
     await ChartFile.bulkCreate([...chartFiles, {
         fileUrl: "static/base03/Co2Annual.csv",
