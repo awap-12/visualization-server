@@ -1,10 +1,10 @@
 const express = require("express");
+const path = require("node:path");
+
 const router = express.Router();
 
 router.get("/", async (req, res) => {
-    let  data = {}
-
-    res.render("index", data)
+    res.sendFile(path.resolve(__dirname, "..", "views/index.html"));
 });
 
 module.exports = router;
