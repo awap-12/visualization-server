@@ -4,6 +4,7 @@
     "main": "app.js",
     "dependencies": {
         "debug": "latest",
+        "jsonwebtoken": "latest",
         "koa": "latest",
         "koa-bodyparser": "latest",
         "koa-logger": "latest",
@@ -16,6 +17,7 @@
         "sequelize": "latest"
     },
     "devDependencies": {
+        "@types/jsonwebtoken": "latest",
         "@types/koa": "latest",
         "@types/koa-bodyparser": "latest",
         "@types/koa-logger": "latest",

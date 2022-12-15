@@ -15,6 +15,7 @@ jobs:
 
     strategy:
       matrix:
+        # The deployment settings should list multiple services here.
         service: [default]
         entrypoint: [
           "node artifacts/default/bin/www"

@@ -7,3 +7,7 @@ app.get("_ah/warmup", (req, res) => {
 });
 
 module.exports = app;
+
+const file = require("./storage/file");
+
+module.exports.file = file;

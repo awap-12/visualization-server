@@ -17,9 +17,9 @@ describe("user route test", () => {
     before("database create", async () => await sequelize.sync({ force: true }));
     after("database clean", async () => sequelize.drop());
     describe("GET /", () => {
-        it("should render a html", done => {
+        it("should get all user", done => {
             agent
-                .get("/?test")
+                .get("/auth?test")
                 .expect(200, done);
         });
     });
