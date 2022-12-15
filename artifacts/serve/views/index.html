@@ -17,7 +17,7 @@
 
     <script defer type="text/babel">
         function getFiles() {
-            return fetch("/chart", { method: "GET" }).then(value => value.json());
+            return fetch(`${location.href}/file`, { method: "GET" }).then(value => value.json());
         }
 
         function postFiles(file) {
@@ -30,7 +30,7 @@
                 formData.append("attach", file);
             }
 
-            return fetch("/chart", { method: "POST", body: formData }).then(value => value.json());
+            return fetch(`${location.href}/file`, { method: "POST", body: formData }).then(value => value.json());
         }
 
         function UploadData() {

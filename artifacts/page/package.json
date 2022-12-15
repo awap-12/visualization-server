@@ -4,6 +4,7 @@
     "main": "app.js",
     "dependencies": {
         "debug": "latest",
+        "compression": "latest",
         "express": "latest",
         "morgan": "latest",
         "multer": "latest",
@@ -11,6 +12,7 @@
         "sequelize": "latest"
     },
     "devDependencies": {
+        "@types/compression": "latest",
         "@types/express": "latest",
         "@types/morgan": "latest",
         "@types/multer": "latest",
