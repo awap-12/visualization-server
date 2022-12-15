@@ -16,13 +16,6 @@ describe("user route test", () => {
     const agent = request.agent(app.listen());
     before("database create", async () => await sequelize.sync({ force: true }));
     after("database clean", async () => sequelize.drop());
-    describe("GET /", () => {
-        it("should get all user", done => {
-            agent
-                .get("/auth?test")
-                .expect(200, done);
-        });
-    });
     describe("POST /", () => {
         it("should register a `test` user", done => {
             agent
