@@ -1,6 +1,6 @@
-const sequelize = require("../handles/model");
-const chartHandle = require("../handles/chart");
-const fileHandle = require("../handles/file");
+const chartHandle = require("../handles/chart.js");
+const fileHandle = require("../handles/file.js");
+const sequelize = require("../handles/model.js");
 const assert = require("node:assert");
 const fs = require("node:fs/promises");
 const path = require("node:path");
@@ -12,29 +12,18 @@ describe("chart handle test", () => {
         name: "test-chart-name",
         description: "test-chart-desc"
     };
-    const globalD3Dsv = [
-        { time: "test-time-01", value: "test-value-01" },
-        { time: "test-time-02", value: "test-value-02" },
-        { time: "test-time-03", value: "test-value-03" },
-        { time: "test-time-04", value: "test-value-04" }
-    ];
+    const globalD3Dsv = ["01", "02", "03", "04"].map(value => ({
+        time: `test-time-${value}`,
+        value: `test-value-${value}`
+    }));
     globalD3Dsv.columns = ["time", "value"];
-    const globalFile = [
-        {
-            url: "test/fixtures/test-01",
-            name: "test-file-01",
-            info: "test-info-01",
-            file: {
-                path: path.resolve(__dirname, "fixtures/test.foo")
-            }
-        }, {
-            url: "test/fixtures/test-02",
-            name: "test-file-02",
-            strategy: "database",
-            info: "test-info-02",
-            file: globalD3Dsv
-        }
-    ];
+    const globalFile = ["01", "02"].map(value => ({
+        url: `test/fixtures/test-${value}`,
+        name: `test-file-${value}`,
+        info: `test-info-${value}`
+    }));
+    globalFile[0] = { ...globalFile[0], file: { path: path.resolve(__dirname, "fixtures/test.foo") }};
+    globalFile[1] = { ...globalFile[1], strategy: "database", file: globalD3Dsv };
     let ownerCache= [], idCache = [], inspector = [];
     before("database create", async () => {
         await sequelize.sync({ force: true });
@@ -45,7 +34,7 @@ describe("chart handle test", () => {
             await fs.access(path.resolve(__dirname, "fixtures/test.foo"));
             await fs.unlink(path.resolve(__dirname, "fixtures/test.foo"));
         } catch {}
-        await sequelize.drop()
+        await sequelize.drop();
     });
     describe("saveChart test", () => {
         beforeEach(async () => await fs.writeFile(path.resolve(__dirname, "fixtures/test.foo"), ''));
@@ -127,7 +116,7 @@ describe("chart handle test", () => {
                         } else return value;
                     }))
                 });
-                console.dir(inspector, {depth: null, colors: true});
+                console.dir(inspector, { depth: null, colors: true });
             }
 
             const { id, Files, ...chart } = result.get();
@@ -202,7 +191,7 @@ describe("chart handle test", () => {
                 assert.deepStrictEqual(other, mapping[id]);
             }
 
-            console.log(collector);
+            assert.deepStrictEqual(collector, structuredClone(idCache).sort((a, b) => b.localeCompare(a)));
         });
     });
     describe("findChart test", () => {
@@ -379,7 +368,7 @@ describe("chart handle test", () => {
                 });
             });
         });
-        it(`should update file with modified operation by file owner`, async () => {
+        it("should update file with modified operation by file owner", async () => {
             const localD3Dsv = [
                 { time: "test-time-01", value: "test-value-05" },
                 { time: "test-time-03", value: "test-value-03" },
@@ -564,7 +553,7 @@ describe("chart handle test", () => {
             });
             const result = await Chart.findAll({
                 where: {
-                    name: "user-link"
+                    name: globalChart.name
                 }
             });
             assert.strictEqual(result.length, 0);

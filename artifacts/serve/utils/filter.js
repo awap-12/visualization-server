@@ -100,17 +100,18 @@ const filter = module.exports = {
         return filtered;
     },
     /**
-     * Filter all the undefined, designed for params
-     * @param {object} obj
-     * @return {object}
+     * Filter out all type value from object or array.
+     * @param {object|array} value
+     * @param {string} type
+     * @return {object|array}
      */
-    undefinedFilter(obj) {
-        Object.keys(obj).forEach(key => {
-            if (typeof obj[key] === "undefined") {
-                delete obj[key];
-            }
-        });
-
-        return obj;
+    typeFilter(value, type = "undefined") {
+        if (Array.isArray(value)) {
+            return value.filter(data => typeof data !== type);
+        } else {
+            return Object.entries(value).reduce((pre, [key, value]) => {
+                return typeof value !== type ? { ...pre, [key]: value } : pre;
+            }, {});
+        }
     }
 }

@@ -1,10 +1,11 @@
-const debug = require("debug")("util:inject");
-const { Chart, ChartFile, File } = require("../handles/model").models;
-const fs = require("node:fs/promises");
-const path = require("node:path");
+const debug = require("debug")("inject:serve");
+const { parse, join, resolve, sep, posix } = require("node:path");
+const { readdir, stat } = require("node:fs/promises");
 
-const STATIC_ROOT = path.resolve(__dirname, "..", "static");
-const STATIC_ROOT_POSIX = STATIC_ROOT.split(path.sep).join("/");
+const { Chart, ChartFile, File } = require("./model.js").models;
+
+const STATIC_ROOT = resolve(__dirname, "..", "static");
+const STATIC_ROOT_POSIX = STATIC_ROOT.split(sep).join("/");
 
 let description = {
     v1: "HadCRUT5 is a gridded dataset of global historical surface temperature anomalies relative to a 1961-1990 reference period. Data are available for each month from January 1850 onwards, on a 5 degree grid and as global and regional average time series. The dataset is a collaborative product of the Met Office Hadley Centre and the Climatic Research Unit at the University of East Anglia.\n" +
@@ -38,51 +39,39 @@ let description = {
         "link: https://ourworldindata.org/emissions-by-sector#co2-emissions-by-sector\n",
 };
 
-async function collect(ref, root) {
-    let stats = await fs.stat(root);
-    if (!stats.isDirectory()) {
-        ref.push({
-            url: path.posix.relative(STATIC_ROOT_POSIX.slice(0, -6), root.split(path.sep).join("/")),
-            name: path.parse(root).name,
-            strategy: "local",
-            owner: root.split(path.sep).slice(-2, -1)
-        });
-        return;
-    }
-    let fileNames = await fs.readdir(root);
-    for (const fileName of fileNames) {
-        await collect(ref, path.join(root, fileName));
+async function* collect(root) {
+    for (const file of await readdir(root)) {
+        const fullPath = join(root, file);
+        const stats = await stat(fullPath);
+
+        if (stats.isDirectory()) yield* collect(fullPath);
+        if (stats.isFile()) yield fullPath;
     }
 }
 
-module.exports = async () => {
+module.exports = async userId => {
     const charts = [], chartFiles = [], files = [];
     for (let i = 1; i <= 10; i++) {
         const folderName = `base${`0${i}`.slice(-2)}`, tempFiles = [], tempChartFile = [];
-        await collect(tempFiles, path.join(STATIC_ROOT, folderName));
-        const tempChart = {
-            id: folderName,
-            name: `v${i}`,
-            description: description[`v${i}`]
+        const tempChart = { id: folderName, name: `v${i}`, description: description[`v${i}`], userId };
+        for await (const tempFile of collect(join(STATIC_ROOT, folderName))) {
+            const normalizePath = tempFile.split(sep);
+            const url = posix.relative(STATIC_ROOT_POSIX.slice(0, -6), normalizePath.join("/"));
+            tempFiles.push({ url, name: parse(tempFile).name, strategy: "local", owner: normalizePath.slice(-2, -1) });
+            tempChartFile.push({ fileUrl: url, chartId: folderName });
         }
-        for (const tempFile of tempFiles) {
-            tempChartFile.push({
-                fileUrl: tempFile.url,
-                chartId: folderName
-            });
-        }
-        debug("inject %o %o", tempChart, tempFiles);
+        debug("add %o with file: %o", tempChart, tempFiles);
         charts.push(tempChart);
         files.push(...tempFiles);
         chartFiles.push(...tempChartFile);
     }
-    await Chart.bulkCreate(charts, { individualHooks: true });
-    await File.bulkCreate(files);
-    await ChartFile.bulkCreate([...chartFiles, {
-        fileUrl: "static/base03/Co2Annual.csv",
-        chartId: "base04"
-    }, {
-        fileUrl: "static/base03/Co2Monthly.csv",
-        chartId: "base04"
-    }]);
+    await Promise.all([
+        Chart.bulkCreate(charts), // individual hook is not required
+        File.bulkCreate(files)
+    ]);
+    await ChartFile.bulkCreate([
+        ...chartFiles,
+        { fileUrl: "static/base03/Co2Annual.csv", chartId: "base04" },
+        { fileUrl: "static/base03/Co2Monthly.csv", chartId: "base04" }
+    ]);
 };

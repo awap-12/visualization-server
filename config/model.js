@@ -9,6 +9,7 @@ module.exports = sequelize => {
         Database: require("serve/models/storage/database")(sequelize),
         /** Page models */
         Preview: require("page/models/preview")(sequelize),
+        View: require("page/models/view")(sequelize),
         /** Oauth models */
         OAuthAccessToken: require("user/models/oauth/accessToken")(sequelize),
         OAuthRefreshToken: require("user/models/oauth/refreshToken")(sequelize),

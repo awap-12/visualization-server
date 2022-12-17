@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 const debug = require("debug")("server");
+const { dialect, pool, ...databaseConfig } = require("server/config/database.js");
+const sequelize = require("../handles/model.js");
+const mysql = require("mysql2");
 const http = require("node:http");
 
-const app = require("../app");
+const app = require("../app.js");
 
 const port = normalizePort(process.env.PORT || "3000");
 
@@ -10,9 +13,20 @@ app.set("port", port);
 
 const server = http.createServer(app);
 
-server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
+const connection = mysql.createConnection({ ...databaseConfig, database: "information_schema" });
+
+connection.query(`create schema if not exists ${databaseConfig.database}`, err => {
+    if (!!err) process.exit(err.errno);
+    sequelize.sync({ force: true }).then(() => {
+        const inject = require("server/handles/inject.js");
+
+        inject().then(() => {
+            server.listen(port);
+            server.on("error", onError);
+            server.on("listening", onListening);
+        });
+    });
+});
 
 /**
  * Normalize a port into a number, string, or false.
@@ -50,6 +64,7 @@ function onError(error) {
 
 /**
  * Event listener for HTTP server "listening" event.
+ * @return void
  */
 function onListening() {
     let addr = server.address(),

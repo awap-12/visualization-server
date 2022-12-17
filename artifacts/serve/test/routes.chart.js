@@ -1,5 +1,5 @@
-const sequelize = require("../handles/model");
-const chartRoute = require("../routes/chart");
+const chartRoute = require("../routes/chart.js");
+const sequelize = require("../handles/model.js");
 const request = require("supertest");
 const express = require("express");
 const assert = require("node:assert");
@@ -28,12 +28,10 @@ describe("chart route test", () => {
         name: "test.csv",
         info: "test-database-storage"
     };
-    const globalD3Dsv = [
-        { time: "test-time-01", value: "test-value-01" },
-        { time: "test-time-02", value: "test-value-02" },
-        { time: "test-time-03", value: "test-value-03" },
-        { time: "test-time-04", value: "test-value-04" }
-    ];
+    const globalD3Dsv = ["01", "02", "03", "04"].map(value => ({
+        time: `test-time-${value}`,
+        value: `test-value-${value}`
+    }));
     globalD3Dsv.columns = ["time", "value"];
     let chartIdCache = [], tableIdCache = [];
     before("database create", async () => {

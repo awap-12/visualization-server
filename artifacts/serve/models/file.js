@@ -68,7 +68,6 @@ module.exports = sequelize => {
                             }
                         });
                     }
-                    //if (!!value) await value.destroy({ where: { id: value.id } });
                 }));
             }
         }

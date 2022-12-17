@@ -1,5 +1,5 @@
 const debug = require("debug")("route:file");
-const fileHandle = require("../handles/file");
+const fileHandle = require("../handles/file.js");
 const express = require("express");
 
 const router = express.Router();

@@ -21,3 +21,4 @@ const sequelize = new Sequelize(databaseConfig.database, databaseConfig.user, da
 });
 
 module.exports = modelConfig(sequelize);
+module.exports.sequelize = sequelize;
