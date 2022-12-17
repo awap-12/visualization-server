@@ -10,7 +10,7 @@ describe("user route test", () => {
     const app = new Koa();
 
     app.use(bodyParser());
-    app.use(view(path.resolve(__dirname, "../view"), { map: { html: "nunjucks" }}));
+    app.use(view(path.resolve(__dirname, "../views"), { map: { html: "nunjucks" }}));
     app.use(authRouter.routes()).use(authRouter.allowedMethods());
 
     const agent = request.agent(app.listen());
