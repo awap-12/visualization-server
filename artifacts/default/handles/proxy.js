@@ -1,5 +1,5 @@
 const debug = require("debug")("handle:proxy");
-const config = require("./worker");
+const config = require("./worker.js");
 
 const proxy = require("http-proxy").createProxyServer();
 

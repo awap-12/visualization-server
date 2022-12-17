@@ -3,7 +3,7 @@ const debug = require("debug")("server");
 const http = require("node:http");
 const app = require("../app.js");
 
-const proxy = require("../handles/proxy")
+const proxy = require("../handles/proxy.js")
 
 const port = normalizePort(process.env.PORT || "3000");
 

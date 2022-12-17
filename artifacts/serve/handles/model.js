@@ -1,14 +1,17 @@
+const sequelize = require("server/handles/model.js");
+
 const { NODE_ENV: nodeEnv } = process.env;
 
-function development() {
-    const { sequelize } = require("server/handles/model.js");
+const isDev = nodeEnv === "development";
+
+function development({ sequelize }) {
 
     const models = {
         /** Serve models */
-        Chart: require("serve/models/chart.js")(sequelize),
-        File: require("serve/models/file.js")(sequelize),
-        Local: require("serve/models/storage/local.js")(sequelize),
-        Database: require("serve/models/storage/database.js")(sequelize),
+        Chart: require("../models/chart.js")(sequelize),
+        File: require("../models/file.js")(sequelize),
+        Local: require("../models/storage/local.js")(sequelize),
+        Database: require("../models/storage/database.js")(sequelize),
         /** User models */
         User: require("user/models/user.js")(sequelize)
     }
@@ -23,7 +26,4 @@ function development() {
 }
 
 /** @type Sequelize */
-module.exports = {
-    production: require("server/handles/model.js"),
-    development: development()
-}[nodeEnv];
+module.exports = isDev ? development(sequelize): sequelize;

@@ -3,6 +3,8 @@ const { EventEmitter } = require("node:events");
 const { spawn } = require("node:child_process");
 const cluster = require("node:cluster");
 
+const { NODE_ENV: nodeEnv } = process.env;
+
 class Thread extends EventEmitter {
     forksErrorCount = {};
     forksExitedNormally = 0;
@@ -37,7 +39,7 @@ class Thread extends EventEmitter {
             workersDir: resolve(dirname(execFile), workersDir),
             binPath: resolve(process.execPath),
             spawnOptions: {
-                env: { ...process.env, DEBUG_COLORS: 1 },
+                env: { ...process.env, DEBUG_COLORS: { production: "off" }[nodeEnv] },
                 windowsHide: !process.execPath.match(/node/),
             },
             eventsOptions: { verbose: false }

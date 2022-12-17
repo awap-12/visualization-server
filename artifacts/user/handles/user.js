@@ -1,5 +1,5 @@
 const crypto = require("node:crypto");
-const { User } = require("./model").models;
+const { User } = require("./model.js").models;
 
 async function getUser(username, rawPassword) {
     const result = await User.findOne({

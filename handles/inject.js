@@ -1,11 +1,11 @@
 // inject have to be registered in correct order!
 // consider improve the structure.
 
-const sequelize = require("./model");
+const sequelize = require("./model.js");
 
 const { User } = sequelize.models;
 
-const serveInject = require("serve/handles/inject");
+const serveInject = require("serve/handles/inject.js");
 
 /**
  * Inject everything.

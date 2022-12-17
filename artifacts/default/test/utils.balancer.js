@@ -1,4 +1,4 @@
-const Balancer = require("../utils/balancer");
+const Balancer = require("../utils/balancer.js");
 const assert = require("chai").assert;
 
 describe("balancer util test", () => {

@@ -1,11 +1,11 @@
 const debug = require("debug")("handle:oauth");
 const oauthServer = require("oauth2-server");
 
-const OAuthAccessToken = require("./accessToken");
-const OAuthRefreshToken = require("./refreshToken");
-const OAuthAuthorizationCode = require("./authorizationCode");
-const OAuthClient = require("./client");
-const User = require("../user");
+const OAuthAccessToken = require("./accessToken.js");
+const OAuthRefreshToken = require("./refreshToken.js");
+const OAuthAuthorizationCode = require("./authorizationCode.js");
+const OAuthClient = require("./client.js");
+const User = require("../user.js");
 
 async function getAccessToken(bearerToken) {
     try {

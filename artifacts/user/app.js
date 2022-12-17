@@ -7,9 +7,9 @@ const path = require("node:path");
 
 const authMiddleware = require("./middleware/jwt");//require("./middleware/auth");
 
-const oauthRouter = require("./routes/oauth");
-const authRouter = require("./routes/auth");
-const userRouter = require("./routes/user");
+const oauthRouter = require("./routes/oauth.js");
+const authRouter = require("./routes/auth.js");
+const userRouter = require("./routes/user.js");
 
 const app = new Koa();
 

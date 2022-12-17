@@ -6,7 +6,7 @@ const cluster = require("node:cluster");
 if (cluster.isMain) {
     const mysql = require("mysql2");
 
-    const { dialect, pool, ...databaseConfig }  = require("server/config/database");
+    const { dialect, pool, ...databaseConfig }  = require("server/config/database.js");
     const instance = require("server/handles/model");
 
     const connection = mysql.createConnection({ ...databaseConfig, database: "information_schema" });

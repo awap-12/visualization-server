@@ -2,7 +2,7 @@ const request = require("supertest");
 const Koa = require("koa");
 const view = require("koa-view");
 const bodyParser = require("koa-bodyparser");
-const authRouter = require("../routes/auth");
+const authRouter = require("../routes/auth.js");
 const path = require("node:path");
 
 describe("auth route test", () => {

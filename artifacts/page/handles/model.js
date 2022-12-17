@@ -1,7 +1,10 @@
+const sequelize = require("server/handles/model.js");
+
 const { NODE_ENV: nodeEnv } = process.env;
 
-function development() {
-    const { sequelize } = require("server/handles/model.js");
+const isDev = nodeEnv === "development";
+
+function development({ sequelize }) {
 
     const models = {
         /** page models */
@@ -23,7 +26,4 @@ function development() {
 }
 
 /** @type Sequelize */
-module.exports = {
-    production: require("server/handles/model.js"),
-    development: development()
-}[nodeEnv];
+module.exports = isDev ? development(sequelize): sequelize;

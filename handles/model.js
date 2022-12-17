@@ -1,7 +1,7 @@
 const debug = require("debug")("handle:model");
-const databaseConfig  = require("../config/database");
-const modelConfig = require("../config/model");
-const highlight = require("../utils/sql");
+const databaseConfig  = require("../config/database.js");
+const modelConfig = require("../config/model.js");
+const highlight = require("../utils/sql.js");
 const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize(databaseConfig.database, databaseConfig.user, databaseConfig.password, {

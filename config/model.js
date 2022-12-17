@@ -3,20 +3,20 @@ const debug = require("debug")("config:model");
 module.exports = sequelize => {
     const models = {
         /** Serve models */
-        Chart: require("serve/models/chart")(sequelize),
-        File: require("serve/models/file")(sequelize),
-        Local: require("serve/models/storage/local")(sequelize),
-        Database: require("serve/models/storage/database")(sequelize),
+        Chart: require("serve/models/chart.js")(sequelize),
+        File: require("serve/models/file.js")(sequelize),
+        Local: require("serve/models/storage/local.js")(sequelize),
+        Database: require("serve/models/storage/database.js")(sequelize),
         /** Page models */
-        Preview: require("page/models/preview")(sequelize),
-        View: require("page/models/view")(sequelize),
+        Preview: require("page/models/preview.js")(sequelize),
+        View: require("page/models/view.js")(sequelize),
         /** Oauth models */
-        OAuthAccessToken: require("user/models/oauth/accessToken")(sequelize),
-        OAuthRefreshToken: require("user/models/oauth/refreshToken")(sequelize),
-        OAuthAuthorizationCode: require("user/models/oauth/authorizationCode")(sequelize),
-        OAuthClient: require("user/models/oauth/client")(sequelize),
+        OAuthAccessToken: require("user/models/oauth/accessToken.js")(sequelize),
+        OAuthRefreshToken: require("user/models/oauth/refreshToken.js")(sequelize),
+        OAuthAuthorizationCode: require("user/models/oauth/authorizationCode.js")(sequelize),
+        OAuthClient: require("user/models/oauth/client.js")(sequelize),
         /** User models */
-        User: require("user/models/user")(sequelize)
+        User: require("user/models/user.js")(sequelize)
     }
 
     for (const name in models) {

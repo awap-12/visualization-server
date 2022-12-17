@@ -1,6 +1,6 @@
+const clientHandle = require("../handles/oauth/client.js");
+const sequelize = require("../handles/model.js");
 const assert = require("node:assert");
-const sequelize = require("../handles/model");
-const clientHandle = require("../handles/oauth/client");
 
 describe("oauth client handle test", () => {
     const globalClient = {
