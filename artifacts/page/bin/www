@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 const debug = require("debug")("server");
-const { dialect, pool, ...databaseConfig } = require("server/config/database");
-const sequelize = require("../handles/model");
+const { dialect, pool, ...databaseConfig } = require("server/config/database.js");
+const sequelize = require("../handles/model.js");
 const mysql = require("mysql2");
 const http = require("node:http");
 
-const app = require("../app");
+const app = require("../app.js");
 
 const port = normalizePort(process.env.PORT || "3000");
 

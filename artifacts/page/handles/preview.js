@@ -1,5 +1,7 @@
 const { readFile } = require("node:fs/promises");
-const { Preview } = require("./model").models;
+const sequelize = require("./model.js");
+
+const { Preview } = sequelize.models;
 
 /**
  * Find a preview based on view id
@@ -24,11 +26,15 @@ async function getPreview(viewId) {
  * @return {Promise<Model>}
  */
 async function savePreview(viewId, { mimetype, path }) {
-    return await Preview.create({
-        type: mimetype,
-        data: await readFile(path),
-        viewId: viewId
-    });
+    return await sequelize.transaction(async trans =>
+        await Preview.create({
+            type: mimetype,
+            data: await readFile(path),
+            viewId: viewId
+        }, {
+            transaction: trans
+        })
+    );
 }
 
 /**
@@ -39,16 +45,17 @@ async function savePreview(viewId, { mimetype, path }) {
  * @return {Promise<boolean>}
  */
 async function updatePreview(viewId, { mimetype, path }) {
-    const [result] = await Preview.update({
-        type: mimetype,
-        data: await readFile(path)
-    }, {
-        where: {
-            viewId: viewId
-        }
-    });
+    return await sequelize.transaction(async trans => {
+        const [result] = await Preview.update({
+            type: mimetype,
+            data: await readFile(path)
+        }, {
+            transaction: trans,
+            where: { viewId }
+        });
 
-    return Boolean(result);
+        return Boolean(result);
+    });
 }
 
 module.exports = {

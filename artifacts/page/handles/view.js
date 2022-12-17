@@ -1,51 +1,58 @@
 const debug = require("debug")("handle:view");
+const { typeFilter } = require("../utils/filter.js");
 const { readFile } = require("node:fs/promises");
-const sequelize = require("./model");
+const sequelize = require("./model.js");
 
 const { View, Preview, ViewChart, Chart } = sequelize.models;
 
 /**
  * Find a view base on viewId
- * @param {string} viewId
+ * @param {string} id
  * @return {Promise<Model>}
  */
-async function getViewById(viewId) {
+async function getViewById(id) {
     const result = await View.findOne({
-        where: {
-            viewId: viewId
-        },
-        include: Chart
+        include: Chart,
+        where: { id }
     });
+
+    debug("getViewById - with id: %s return %o", id, result?.toJSON());
 
     return !!result ? result : false;
 }
 
 /**
  * Save a view by existed chart.
- * @param {string} uerId
+ * @param {string} userId
  * @param {"grid"|"flex"} display display style
  * @param {string} description
- * @param {string[]} charts charts
+ * @param {string[]} charts charts id
  * @param {{mimetype:string,path:string}} file file structure from multer (req.file(s))
  * @return {Promise<Model>}
  */
-async function saveView(uerId, { display, description, charts, file }) {
-    const result = await sequelize.transaction(async trans => {
-        const [viewResult, ...chartsResult] = await Promise.all([
+async function saveView(userId, { display, description, charts, file }) {
+    const { id } = await sequelize.transaction(async trans => {
+        const [viewResult, chartsResult] = await Promise.all([
             View.create({
-                display,
-                description,
+                display: display,
+                description: description,
                 preview: {
                     type: file.mimetype,
                     data: await readFile(file.path)
                 },
-                userId: uerId
+                userId: userId
             }, {
                 transaction: trans,
-                include: Preview,
-                as: "preview"
+                include: {
+                    model: Preview,
+                    as: "preview"
+                }
             }),
-            ...charts.map(chart => ViewChart.findById(chart, { transaction: trans }))
+            Chart.findAll({
+                where: {
+                    id: charts
+                }
+            })
         ]);
 
         viewResult.addChart(chartsResult);
@@ -53,10 +60,69 @@ async function saveView(uerId, { display, description, charts, file }) {
         return viewResult;
     });
 
-    return await getViewById(result.id);
+    return await getViewById(id);
+}
+
+/**
+ * Update view detail
+ * @param {string} id
+ * @param {string[]|string} [charts]
+ * @param {{display?:string,description?:string}} [data]
+ * @return {Promise<boolean>}
+ */
+async function updateView(id, { charts, ...data }) {
+    return await sequelize.transaction(async (trans, result) => {
+        if (Object.keys(data).length > 0) {
+            const [updateResult] = await View.update(typeFilter(data), {
+                transaction: trans,
+                where: { id }
+            });
+            result = updateResult;
+        }
+
+        if (!charts) return Boolean(result);
+
+        const [viewResult, chartsResult] = await Promise.all([
+            View.findOne({
+                transaction: trans,
+                where: { id }
+            }),
+            Chart.findAll({
+                transaction: trans,
+                where: {
+                    id: charts
+                }
+            }),
+            ViewChart.destroy({
+                transaction: trans,
+                where: {
+                    viewId: id
+                }
+            }),
+        ]);
+
+        viewResult.addChart(chartsResult);
+
+        return true;
+    });
+}
+
+/**
+ * Remove a view
+ * @param {string} id
+ * @return {Promise<boolean>}
+ */
+async function deleteView(id) {
+    return Boolean(await View.destroy({
+        where: {
+            id: id
+        }
+    }));
 }
 
 module.exports = {
     getViewById,
     saveView,
+    updateView,
+    deleteView
 }

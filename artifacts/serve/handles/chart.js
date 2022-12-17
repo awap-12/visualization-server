@@ -1,5 +1,5 @@
 const debug = require("debug")("handle:chart");
-const fileHandle = require("../handles/file");
+const fileHandle = require("./file");
 const sequelize = require("./model");
 const { Op } = require("sequelize");
 
@@ -70,11 +70,15 @@ async function getChart(limit, order) {
  * @return {Promise<Model>}
  */
 async function createChart(user, { name, description }) {
-    return await Chart.create({
-        name: name,
-        description: description,
-        userId: user
-    });
+    return sequelize.transaction(async trans =>
+        await Chart.create({
+            name: name,
+            description: description,
+            userId: user
+        }, {
+            transaction: trans
+        })
+    );
 }
 
 /**

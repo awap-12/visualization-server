@@ -553,7 +553,7 @@ describe("chart handle test", () => {
             });
             const result = await Chart.findAll({
                 where: {
-                    name: "user-link"
+                    name: globalChart.name
                 }
             });
             assert.strictEqual(result.length, 0);

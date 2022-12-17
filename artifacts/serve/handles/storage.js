@@ -91,7 +91,7 @@ async function updateStorage(url, data, type = "local") {
 
             return await sequelize.transaction(async trans => {
                 if (!!columns && !utils.isDeepStrictEqual(columns, currentColumns)) {
-                    // If columns is not same, we should alter table, but sequelize not supported. Consider to use raw query?
+                    // If columns is not same, we should alter table. TODO: https://sequelize.org/docs/v6/other-topics/query-interface/
                     await Database.destroy({
                         individualHooks: true,
                         transaction: trans,

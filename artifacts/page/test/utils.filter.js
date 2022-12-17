@@ -1,4 +1,4 @@
-const filter = require("../utils/filter");
+const filter = require("../utils/filter.js");
 const assert = require("node:assert");
 
 describe("filter util test", () => {

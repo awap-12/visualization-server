@@ -1,7 +1,7 @@
-const previewHandle = require("../handles/preview");
-const sequelize = require("../handles/model");
+const previewHandle = require("../handles/preview.js");
+const sequelize = require("../handles/model.js");
 const assert = require("node:assert");
-const { resolve } = require("node:path");
+const path = require("node:path");
 
 const { User, View } = sequelize.models;
 
@@ -10,15 +10,15 @@ describe("preview handle test", () => {
     before("database create", async () => {
         await sequelize.sync({ force: true });
         await User.create({ name: "test-name", password: "test-password" });
-        const result = await View.create({ description: "test-view" });
-        idCache = result.id;
+        const { id } = await View.create({ description: "test-view" });
+        idCache = id;
     });
     after("database clean", async () => sequelize.drop());
     describe("savePreview test", () => {
         it("should create a preview", async () => {
             const result = await previewHandle.savePreview(idCache, {
                 mimetype: "image/png",
-                path: resolve(__dirname, "fixtures/foo.png")
+                path: path.resolve(__dirname, "fixtures/foo.png")
             });
 
             const { id, type, data } = result.toJSON();
@@ -49,7 +49,7 @@ describe("preview handle test", () => {
         it("should update a preview", async () => {
             const result = await previewHandle.updatePreview(idCache, {
                 mimetype: "image/png",
-                path: resolve(__dirname, "fixtures/bar.png")
+                path: path.resolve(__dirname, "fixtures/bar.png")
             });
 
             assert.strictEqual(result, true);

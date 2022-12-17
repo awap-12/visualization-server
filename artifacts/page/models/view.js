@@ -1,5 +1,5 @@
 const { DataTypes, Model } = require("sequelize");
-const base62 = require("serve/utils/base62");
+const base62 = require("serve/utils/base62.js");
 
 const VIEW_ID_LENGTH = 6;
 
