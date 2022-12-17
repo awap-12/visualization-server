@@ -16,17 +16,10 @@ describe("user route test", () => {
     const agent = request.agent(app.listen());
     before("database create", async () => await sequelize.sync({ force: true }));
     after("database clean", async () => sequelize.drop());
-    describe("GET /", () => {
-        it("should get all user", done => {
-            agent
-                .get("/auth?test")
-                .expect(200, done);
-        });
-    });
-    describe("POST /", () => {
+    describe("POST /register", () => {
         it("should register a `test` user", done => {
             agent
-                .post("/")
+                .post("/register")
                 .send({
                     name: "test-name",
                     password: "test-password"
@@ -35,12 +28,23 @@ describe("user route test", () => {
         });
         it("should return error when password is wrong", done => {
             agent
-                .post("/")
+                .post("/register")
                 .send({
                     name: "test-name",
                     password: "wrong-password"
                 })
                 .expect(500, done);
+        });
+    });
+    describe("GET /login", () => {
+        it("should login with correct password", done => {
+            agent
+                .post("/login")
+                .send({
+                    name: "test-name",
+                    password: "test-password"
+                })
+                .expect(200, done);
         });
     });
     describe("PUT /", () => {

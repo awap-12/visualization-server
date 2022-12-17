@@ -3,7 +3,20 @@ const userHandle = require("../handles/user");
 
 const router = new Router();
 
-router.post("/", async ctx => {
+router.post("/login", async ctx => {
+    try {
+        const { name, password } = ctx.request.body;
+
+        const result = await userHandle.getUser(name, password);
+        if (!result) throw new Error("password error");
+
+        ctx.status = 200;
+    } catch (err) {
+        ctx.status = 500;
+    }
+});
+
+router.post("/register", async ctx => {
     try {
         const { name, password } = ctx.request.body;
 

@@ -16,21 +16,20 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <script defer type="text/babel">
+        const API_URL = `${location.href}/file`;
+
         function getFiles() {
-            return fetch(`${location.href}/file`, { method: "GET" }).then(value => value.json());
+            return fetch(API_URL, { method: "GET" }).then(value => value.json());
         }
 
         function postFiles(file) {
             let formData = new FormData();
             if (Array.isArray(file)) {
-                for (const data of file) {
+                for (const data of file)
                     formData.append("attach", data);
-                }
-            } else {
-                formData.append("attach", file);
-            }
+            } else formData.append("attach", file);
 
-            return fetch(`${location.href}/file`, { method: "POST", body: formData }).then(value => value.json());
+            return fetch(API_URL, { method: "POST", body: formData }).then(value => value.json());
         }
 
         function UploadData() {
@@ -87,7 +86,5 @@
 
     </script>
 </head>
-<body>
-<div id="root"></div>
-</body>
+<body><div id="root"></div></body>
 </html>
