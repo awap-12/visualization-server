@@ -2,13 +2,14 @@ const { DataTypes, Model } = require("sequelize");
 
 module.exports = sequelize => {
     class Preview extends Model {
-        static associate({ Chart, Preview }) {
-            Chart.hasOne(Preview, {
-                foreignKey: "chartId",
+        static associate({ View, Preview }) {
+            View.hasOne(Preview, {
+                foreignKey: "viewId",
+                onDelete: "CASCADE",
                 as: "preview"
             });
-            Preview.belongsTo(Chart, {
-                foreignKey: "chartId"
+            Preview.belongsTo(View, {
+                foreignKey: "viewId"
             });
         }
     }
@@ -35,7 +36,7 @@ module.exports = sequelize => {
         timestamps: false,
         underscored: true,
         indexes: [{
-            fields: ["chart_id"],
+            fields: ["view_id"],
             unique: true
         }]
     });

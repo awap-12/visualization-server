@@ -1,4 +1,4 @@
-const base62 = require("../utils/base62");
+const base62 = require("../utils/base62.js");
 const assert = require("node:assert");
 
 describe("base62 util test", () => {

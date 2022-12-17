@@ -9,6 +9,10 @@ node_modules/
 build
 dist
 
-# dev
+# dev environment
 .vscode/
 .idea/
+
+# script run
+.run/
+

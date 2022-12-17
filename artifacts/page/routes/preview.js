@@ -1,5 +1,5 @@
 const debug = require("debug")("route:preview");
-const chartHandle = require("../handles/preview");
+const previewHandle = require("../handles/preview.js");
 const express = require("express");
 const multer = require("multer");
 
@@ -21,10 +21,13 @@ router.get("/:id", async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const result = await chartHandle.getPreview(id);
+        const result = await previewHandle.getPreview(id);
+        if (!result) next(new Error("preview file not exists"));
 
-        res.contentType(result.type);
-        res.status(200).send(!!result ? result.data : false);
+        const { type, data } = result;
+
+        res.contentType(type);
+        res.status(200).send(data);
     } catch (err) {
         debug("get method params: %o with error %o", req.params, err);
         next(err);
@@ -35,7 +38,7 @@ router.post("/:id", upload.single("preview"), async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const result = await chartHandle.savePreview(id, req.file);
+        const result = await previewHandle.savePreview(id, req.file);
 
         res.status(200).send(result.toJSON());
     } catch (err) {
@@ -48,7 +51,7 @@ router.put("/:id", upload.single("preview"), async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const result = await chartHandle.updatePreview(id, req.file);
+        const result = await previewHandle.updatePreview(id, req.file);
 
         res.status(200).send(result);
     } catch (err) {
