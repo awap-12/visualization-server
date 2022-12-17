@@ -5,26 +5,17 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 
 describe("file handle test", () => {
-    const globalFile = [
-        {
-            url: "test/fixtures/test-01",
-            name: "test-file-01",
-            info: "test-info-01",
-            owner: "test-owner-01"
-        }, {
-            url: "test/fixtures/test-02",
-            name: "test-file-02",
-            strategy: "database",
-            info: "test-info-02",
-            owner: "test-owner-02"
-        }
-    ];
-    const globalD3Dsv = [
-        { time: "test-time-01", value: "test-value-01" },
-        { time: "test-time-02", value: "test-value-02" },
-        { time: "test-time-03", value: "test-value-03" },
-        { time: "test-time-04", value: "test-value-04" }
-    ];
+    const globalFile = ["01", "02"].map(value => ({
+        url: `test/fixtures/test-${value}`,
+        name: `test-file-${value}`,
+        info: `test-info-${value}`,
+        owner: `test-owner-${value}`
+    }));
+    globalFile[1] = { ...globalFile[1], strategy: "database" };
+    const globalD3Dsv = ["01", "02", "03", "04"].map(value => ({
+        time: `test-time-${value}`,
+        value: `test-value-${value}`
+    }));
     globalD3Dsv.columns = ["time", "value"];
     before("database create", async () => {
         await sequelize.sync({ force: true });
@@ -39,7 +30,7 @@ describe("file handle test", () => {
                 await fs.unlink(path.resolve(__dirname, "..", url));
             } catch {}
         }));
-        await sequelize.drop()
+        await sequelize.drop();
     });
     describe("saveFile test", () => {
         it("should save a file with local storage strategy", async () => {

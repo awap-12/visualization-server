@@ -1,7 +1,7 @@
 const { DataTypes, Model } = require("sequelize");
 const base36 = require("../../utils/base36");
 
-const TABLE_NAME_GENERATE_LENGTH = 12;
+const TABLE_NAME_LENGTH = 12;
 
 module.exports = sequelize => {
     class Database extends Model {
@@ -25,7 +25,7 @@ module.exports = sequelize => {
             unique: true
         },
         table: {
-            type: DataTypes.STRING(12),
+            type: DataTypes.STRING(TABLE_NAME_LENGTH),
             allowNull: false,
             unique: true
         },
@@ -65,23 +65,21 @@ module.exports = sequelize => {
         }],
         hooks: {
             async beforeValidate(instance) {
-                let result = instance.table ?? base36(TABLE_NAME_GENERATE_LENGTH), flag = true;
+                let result = instance.table ?? base36(TABLE_NAME_LENGTH), flag = true;
                 do {
                     flag = !!await Database.findOne({ where: { table: result } });
-                } while (flag && !!(result = base36(TABLE_NAME_GENERATE_LENGTH)));
+                } while (flag && !!(result = base36(TABLE_NAME_LENGTH)));
                 instance.setDataValue("table", result);
             },
-            async beforeCreate(instance) {
+            async afterCreate(instance) {
                 await sequelize.define(instance.table, {
-                    ...(instance.columns?.reduce((pre, cur) => {
-                        return { ...pre, [cur]: DataTypes.STRING };
-                    }, {}))
+                    ...(instance.columns?.reduce((pre, cur) => ({...pre, [cur]: DataTypes.STRING}), {}))
                 }, {
                     freezeTableName: true,
                     timestamps: false,
                 }).sync();
             },
-            async beforeDestroy(instance) {
+            async afterDestroy(instance) {
                 const model = instance.sequelize.models[instance.table];
                 if (!model) throw new Error("table not exist");
                 await model.drop();

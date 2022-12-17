@@ -1,6 +1,6 @@
 const debug = require("debug")("handle:file");
 const storageHandle = require("../handles/storage");
-const { undefinedFilter } = require("../utils/filter");
+const { typeFilter } = require("../utils/filter");
 const sequelize = require("./model");
 const { Op } = require("sequelize");
 
@@ -86,18 +86,22 @@ async function getFile(limit, order) {
  */
 async function saveFile(url, { strategy = "local", file, ...data }) {
     switch (strategy) {
-        case "local":
-            debug("saveFile - create file: %o", { url, strategy, ...data, local: { ...file, fileId: url }});
-            return await File.create({ url, strategy, ...data, local: { ...file, fileId: url }}, {
-                include: {
-                    model: Local,
-                    as: "local"
-                }
-            });
-        case "database":
-            const { name, columns, ...pureData } = file;
-            debug("saveFile - create file: %o", { url, strategy, ...data, database: { table: name, columns: columns, fileId: url }});
+        case "local": {
             return await sequelize.transaction(async trans => {
+                const result = await File.create({ url, strategy, ...data, local: { ...file, fileId: url }}, {
+                    transaction: trans,
+                    include: {
+                        model: Local,
+                        as: "local"
+                    }
+                });
+                debug("saveFile - create file: %o", result.toJSON());
+                return result;
+            });
+        }
+        case "database": {
+            return await sequelize.transaction(async trans => {
+                const { name, columns, ...pureData } = file;
                 const result = await File.create({ url, strategy, ...data, database: { table: name, columns: columns, fileId: url }}, {
                     transaction: trans,
                     include: {
@@ -106,8 +110,10 @@ async function saveFile(url, { strategy = "local", file, ...data }) {
                     }
                 });
                 await sequelize.models[result.database.table].bulkCreate(Object.values(pureData), { transaction: trans });
+                debug("saveFile - create file: %o", result.toJSON());
                 return result;
             });
+        }
         default:
             throw new TypeError(`save file with type ${strategy} not supported`);
     }
@@ -122,35 +128,38 @@ async function saveFile(url, { strategy = "local", file, ...data }) {
  * @return {Promise<boolean>}
  */
 async function updateFile(url, { strategy, file, ...data }) {
-    let result = [];
+    return sequelize.transaction(async (trans, result = []) => {
+        if (Object.keys(data).length > 0) {
+            const [updateResult] = await File.update(typeFilter({ strategy, ...data }), {
+                individualHooks: true,
+                transaction: trans,
+                where: { url }
+            });
+            result.push(updateResult); // 1 or 0
+        }
 
-    if (Object.keys(data).length > 0)
-        result.push((await File.update(undefinedFilter({ strategy, ...data }), {
-            individualHooks: true,
-            where: {
-                url: url
-            }
-        }))[0]);
+        if (!file) return Boolean(result[0]);
 
-    if (!!file) {
         const { strategy: currentStrategy, local, database } = await File.findByPk(url, {
             include: [
                 { model: Local, as: "local" },
                 { model: Database, as: "database" }
             ]
         });
+
         debug("get current file stage %o", (local ?? database).toJSON())
+
         if (!!strategy && strategy !== currentStrategy) {
             // switch strategy
             // 1. remove old file
-            // 2. add new file
-            const modelName = currentStrategy.charAt(0).toUpperCase() + currentStrategy.slice(1);
-            const dropResult = await sequelize.models[modelName].destroy({
+            const dropResult = await sequelize.models[currentStrategy.replace(/^./, currentStrategy[0].toUpperCase())].destroy({
+                transaction: trans,
                 where: {
                     id: { local, database }[currentStrategy].id
                 }
             });
             if (!Boolean(dropResult)) throw new Error("unable to remove old file");
+            // 2. add new file
             result.push(await storageHandle.saveStorage(url, file, strategy));
             debug(`try drop old ${currentStrategy}: %s and add new ${strategy}`, Boolean(dropResult) ? "success" : "fail");
         } else {
@@ -158,9 +167,9 @@ async function updateFile(url, { strategy, file, ...data }) {
             result.push(await storageHandle.updateStorage(url, file, currentStrategy));
             debug(`update current ${currentStrategy}`);
         }
-    }
 
-    return result.filter(Boolean).length > 0;
+        return result.filter(Boolean).length >= +!!file + +(Object.keys(data).length > 0);
+    });
 }
 
 /**

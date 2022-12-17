@@ -70,12 +70,11 @@ async function getChart(limit, order) {
  * @return {Promise<Model>}
  */
 async function createChart(user, { name, description }) {
-    if (!!name && !!description)
-        return await Chart.create({
-            name: name,
-            description: description,
-            userId: user
-        });
+    return await Chart.create({
+        name: name,
+        description: description,
+        userId: user
+    });
 }
 
 /**
@@ -86,17 +85,21 @@ async function createChart(user, { name, description }) {
  * @return {Promise<Model>}
  */
 async function saveChart(user, files, data) {
-    const chartResult = await createChart(user, data) ?? await getChartById(data);
-    // 1. save all files
-    const filesResult = await Promise.all(files.map(async ({ url, ...options}) => {
-        const exists = await fileHandle.getFileByUrl(url);
-        return typeof exists === "boolean" ? await fileHandle.saveFile(url, { ...options, owner: chartResult.id }) : exists;
-    }));
-    debug("save chart: %o, save file %o", chartResult.toJSON(), filesResult.map(value => value.toJSON()));
-    // 3. bind new create to chart table
-    await chartResult.addFile(filesResult);
+    const result = await sequelize.transaction(async () => {
+        const chartResult = typeof data === "string" ? await getChartById(data) : await createChart(user, data);
+        // 1. save all files
+        const filesResult = await Promise.all(files.map(async ({ url, ...options}) => {
+            const exists = await fileHandle.getFileByUrl(url);
+            return typeof exists === "boolean" ? await fileHandle.saveFile(url, { ...options, owner: chartResult.id }) : exists;
+        }));
+        debug("save chart: %o, save file %o", chartResult.toJSON(), filesResult.map(value => value.toJSON()));
+        // 3. bind new create to chart table
+        await chartResult.addFile(filesResult);
+
+        return chartResult;
+    });
     // 4. get full image of chart.
-    return await getChartById(chartResult.id);
+    return await getChartById(result.id);
 }
 
 /**
@@ -123,25 +126,30 @@ async function saveChart(user, files, data) {
  * @return {Promise<boolean>}
  */
 async function updateChart(id, { files, ...data }) {
-    let result = [];
+    return sequelize.transaction(async (trans, result = []) => {
+        if (Object.keys(data).length > 0) {
+            const [updateResult] = await Chart.update(data, {
+                transaction: trans,
+                where: { id }
+            });
+            result.push(updateResult);
+        }
 
-    if (Object.keys(data).length > 0)
-        result.push((await Chart.update(data, {
-            where: {
-                id: id
-            }
-        }))[0]);
+        if (!Array.isArray(files)) return Boolean(result[0]);
 
-    if (Array.isArray(files)) {
-        result.push(...(await Promise.all(files.map(async ({ url, operation, options }) => {
+        const filesResult = await Promise.all(files.map(async ({ url, operation, options }) => {
             switch (operation) {
-                case "insert":
+                case "insert": {
                     const chartResult = await getChartById(id);
                     const exists = await fileHandle.getFileByUrl((url ??= options.url));
-                    const filesResult = typeof exists === "boolean" ? await fileHandle.saveFile(url, { ...options, owner: id }) : exists;
+                    const filesResult = typeof exists === "boolean" ? await fileHandle.saveFile(url, {
+                        ...options,
+                        owner: id
+                    }) : exists;
                     await chartResult.addFile(filesResult);
                     debug("updateChart - save %s and get %o", url, filesResult.toJSON());
                     return true;
+                }
                 case "modify": {
                     const { owner: currentOwner } = await fileHandle.getFileByUrl(url);
                     if (id === currentOwner) {
@@ -198,12 +206,14 @@ async function updateChart(id, { files, ...data }) {
                     }
                 }
                 default:
-                    throw new Error("unknown file operation");
+                    throw new TypeError(`unknown file operation ${operation}`);
             }
-        }))));
-    }
+        }));
 
-    return result.filter(Boolean).length > 0;
+        result.push(...filesResult);
+
+        return result.filter(Boolean).length > 0;
+    });
 }
 
 /**

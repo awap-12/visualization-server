@@ -36,15 +36,22 @@ async function getStorage(url) {
  */
 async function saveStorage(url, data, type = "local") {
     switch (type) {
-        case "local":
-            return await Local.create({ path: data, fileId: url });
-        case "database":
+        case "local": {
+            return await sequelize.transaction(async trans => {
+                const result = await Local.create({ path: data, fileId: url }, { transaction: trans });
+                debug("saveStorage - create local storage %o", result.toJSON());
+                return result;
+            });
+        }
+        case "database": {
             return await sequelize.transaction(async trans => {
                 const { name, columns, ...pureData } = data;
                 const result = await Database.create({ table: name, columns: columns, fileId: url }, { transaction: trans });
                 await sequelize.models[result.table].bulkCreate(Object.values(pureData), { transaction: trans });
+                debug("saveStorage - create database storage %o", result.toJSON());
                 return result;
             });
+        }
         default:
             throw new TypeError(`save storage with type ${type} not supported`);
     }
@@ -52,60 +59,56 @@ async function saveStorage(url, data, type = "local") {
 
 /**
  * Update storage resource
- * @param {string} url should be "/static/{chartId}/{fileName}" which could sync front end design
+ * @param {string} url should be "/static/{chartId}/{fileName}" or "http://" which could sync front end design
  * @param {string|array} data string -> local storage path; array -> {row object{}, id, type(update/upsert)}[]
  * @param {"local"|"database"} type
  * @return {Promise<boolean>}
  */
 async function updateStorage(url, data, type = "local") {
     switch (type) {
-        case "local":
-            try {
-                await Local.update({ path: data }, {
+        case "local": {
+            return await sequelize.transaction(async trans => {
+                const [result] = await Local.update({path: data}, {
                     individualHooks: true,
+                    transaction: trans,
                     where: {
                         fileId: url
                     }
                 });
+                debug("updateStorage - update local storage %o %s", data, !Boolean(result) ? "success" : "fail");
+                return !Boolean(result); // if really updated, check hooks
+            });
+        }
+        case "database": {
+            // TODO: workflow, 1 -> update all, 2 -> upsert all
+            const { id, table, columns: currentColumns } = await Database.findOne({
+                attributes: ["id", "table", "columns"],
+                where: {
+                    fileId: url
+                }
+            });
+            const { name, columns, ...pureData } = data;
 
-                return true;
-            } catch (err) {
-                debug("updateStorage - update %o", err);
-                return false;
-            }
-        case "database":
-            // workflow, 1 -> update all, 2 -> upsert all
-            try {
-                const { id, table, columns: currentColumns } = await Database.findOne({
-                    attributes: ["id", "table", "columns"],
-                    where: {
-                        fileId: url
-                    }
-                });
-                const { columns, ...pureData } = data;
-
+            return await sequelize.transaction(async trans => {
                 if (!!columns && !utils.isDeepStrictEqual(columns, currentColumns)) {
+                    // If columns is not same, we should alter table, but sequelize not supported. Consider to use raw query?
                     await Database.destroy({
                         individualHooks: true,
-                        where: {
-                            id: id
-                        }
+                        transaction: trans,
+                        where: { id }
                     });
-                    await saveStorage(url, data, "database");
+                    const { table } = await Database.create({ table: name, columns: columns, fileId: url }, { transaction: trans });
+                    await sequelize.models[table].bulkCreate(Object.values(pureData), { transaction: trans });
                 } else {
-                    await sequelize.transaction(async trans => {
-                        await sequelize.models[table].destroy({ transaction: trans, truncate: true });
-                        await sequelize.models[table].bulkCreate(Object.values(pureData), { transaction: trans });
-                    });
+                    await sequelize.models[table].destroy({ transaction: trans, truncate: true });
+                    await sequelize.models[table].bulkCreate(Object.values(pureData), { transaction: trans });
                 }
-
+                debug("updateStorage - update database storage %o", data);
                 return true;
-            } catch (err) {
-                debug("updateStorage - update %o", err);
-                return false;
-            }
+            });
+        }
         default:
-            throw new TypeError(`save storage with type ${type} not supported`);
+            throw new TypeError(`updateStorage - update storage with type ${type} not supported`);
     }
 }
 
@@ -117,9 +120,7 @@ async function updateStorage(url, data, type = "local") {
 async function deleteStorage(url) {
     return Boolean(await File.destroy({
         individualHooks: true,
-        where: {
-            url: url
-        }
+        where: { url }
     }));
 }
 

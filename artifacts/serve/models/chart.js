@@ -1,26 +1,26 @@
 const { DataTypes, Model } = require("sequelize");
 const base62 = require("../utils/base62");
 
-const CHART_ID_GENERATE_LENGTH = 6;
+const CHART_ID_LENGTH = 6;
 
 module.exports = sequelize => {
     class Chart extends Model {
         static associate({ User, Chart }) {
+            User.hasMany(Chart, {
+                foreignKey: "userId",
+                as: "chart"
+            });
             Chart.belongsTo(User, {
                 foreignKey: "userId",
                 onDelete: "CASCADE", // user remove -> chart remove
                 as: "user"
-            });
-            User.hasMany(Chart, {
-                foreignKey: "userId",
-                as: "chart"
             });
         }
     }
 
     Chart.init({
         id: {
-            type: DataTypes.STRING(6),
+            type: DataTypes.STRING(CHART_ID_LENGTH),
             primaryKey: true,
             unique: true
         },
@@ -38,10 +38,10 @@ module.exports = sequelize => {
         timestamps: false,
         hooks: {
             async beforeCreate(instance) {
-                let result = instance.id ?? base62(CHART_ID_GENERATE_LENGTH), flag = true;
+                let result = instance.id ?? base62(CHART_ID_LENGTH), flag = true;
                 do {
                     flag = !!await Chart.findByPk(result);
-                } while (flag && !!(result = base62(CHART_ID_GENERATE_LENGTH)));
+                } while (flag && !!(result = base62(CHART_ID_LENGTH)));
                 instance.setDataValue("id", result);
             },
             async beforeDestroy(instance) {

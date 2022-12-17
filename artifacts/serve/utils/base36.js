@@ -1,4 +1,4 @@
-const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 const charsLength = chars.length;
 
 /**
