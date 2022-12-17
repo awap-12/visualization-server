@@ -1,12 +1,11 @@
 const sequelize = require("../handles/model");
-const chartHandle = require("serve/handles/chart");
 const previewRoute = require("../routes/preview");
 const request = require("supertest");
 const express = require("express");
 const assert = require("node:assert");
 const { resolve } = require("node:path");
 
-const { User } = sequelize.models;
+const { User, View } = sequelize.models;
 
 describe("preview route test", () => {
     const app = express();
@@ -17,27 +16,11 @@ describe("preview route test", () => {
 
     const agent = request.agent(app);
 
-    const globalD3Dsv = [
-        { time: "test-time-01", value: "test-value-01" },
-        { time: "test-time-02", value: "test-value-02" },
-        { time: "test-time-03", value: "test-value-03" },
-        { time: "test-time-04", value: "test-value-04" }
-    ];
-    globalD3Dsv.columns = ["time", "value"];
     let idCache = null;
     before("database create", async () => {
         await sequelize.sync({ force: true });
         await User.create({ name: "test-name", password: "test-password" });
-        const result = await chartHandle.saveChart(1, [{
-            url: "test/fixtures/test",
-            name: "test-file",
-            strategy: "database",
-            info: "test-info",
-            file: globalD3Dsv
-        }], {
-            name: "test-chart-name",
-            description: "test-chart-desc"
-        });
+        const result = await View.create({ description: "test-view" });
         idCache = result.id;
     });
     after("database clean", async () => sequelize.drop());
