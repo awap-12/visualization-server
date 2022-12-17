@@ -1,5 +1,5 @@
 const { DataTypes, Model } = require("sequelize");
-const file = require("../../utils/file");
+const file = require("../../utils/file.js");
 
 module.exports = sequelize => {
     class Local extends Model {

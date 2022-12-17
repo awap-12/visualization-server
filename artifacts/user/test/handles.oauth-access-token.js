@@ -1,6 +1,6 @@
-const assert = require("node:assert");
-const sequelize = require("../handles/model");
 const OAuthAccessTokenHandle = require("../handles/oauth/accessToken");
+const sequelize = require("../handles/model");
+const assert = require("node:assert");
 const crypto = require("node:crypto");
 
 const { OAuthClient, User } = sequelize.models;

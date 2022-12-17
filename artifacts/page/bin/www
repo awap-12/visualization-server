@@ -18,7 +18,7 @@ const connection = mysql.createConnection({ ...databaseConfig, database: "inform
 connection.query(`create schema if not exists ${databaseConfig.database}`, err => {
     if (!!err) process.exit(err.errno);
     sequelize.sync({ force: true }).then(() => {
-        const inject = require("server/handles/inject");
+        const inject = require("server/handles/inject.js");
 
         inject().then(() => {
             server.listen(port);

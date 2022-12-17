@@ -1,7 +1,7 @@
 const debug = require("debug")("handle:file");
-const { typeFilter } = require("../utils/filter");
+const { typeFilter } = require("../utils/filter.js");
 const storageHandle = require("./storage.js");
-const sequelize = require("./model");
+const sequelize = require("./model.js");
 const { Op } = require("sequelize");
 
 const { Chart, File, Local, Database } = sequelize.models;

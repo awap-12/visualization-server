@@ -1,5 +1,5 @@
-const sequelize = require("../handles/model");
-const storageHandle = require("../handles/storage");
+const storageHandle = require("../handles/storage.js");
+const sequelize = require("../handles/model.js");
 const assert = require("node:assert");
 const fs = require("node:fs/promises");
 const path = require("node:path");

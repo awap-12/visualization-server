@@ -2,9 +2,8 @@ const viewRoute = require("../routes/view.js");
 const sequelize = require("../handles/model.js");
 const request = require("supertest");
 const express = require("express");
-const path = require("node:path");
-const fs = require("node:fs");
 const assert = require("node:assert");
+const path = require("node:path");
 
 const { User, Chart } = sequelize.models;
 

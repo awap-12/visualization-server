@@ -1,4 +1,4 @@
 const debug = require("debug")("inject:page");
-const { View } = require("./model").models;
+const { View } = require("./model.js").models;
 
 

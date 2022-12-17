@@ -1,6 +1,6 @@
 const debug = require("debug")("handle:chart");
-const fileHandle = require("./file");
-const sequelize = require("./model");
+const fileHandle = require("./file.js");
+const sequelize = require("./model.js");
 const { Op } = require("sequelize");
 
 const { Chart, ChartFile, File, Local, Database } = sequelize.models;

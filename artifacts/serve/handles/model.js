@@ -1,4 +1,3 @@
-const {sequelize} = require("../../../handles/model");
 const { NODE_ENV: nodeEnv } = process.env;
 
 function development() {
@@ -6,10 +5,10 @@ function development() {
 
     const models = {
         /** Serve models */
-        Chart: require("serve/models/chart")(sequelize),
-        File: require("serve/models/file")(sequelize),
-        Local: require("serve/models/storage/local")(sequelize),
-        Database: require("serve/models/storage/database")(sequelize),
+        Chart: require("serve/models/chart.js")(sequelize),
+        File: require("serve/models/file.js")(sequelize),
+        Local: require("serve/models/storage/local.js")(sequelize),
+        Database: require("serve/models/storage/database.js")(sequelize),
         /** User models */
         User: require("user/models/user.js")(sequelize)
     }

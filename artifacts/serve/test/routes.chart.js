@@ -1,5 +1,5 @@
-const sequelize = require("../handles/model");
-const chartRoute = require("../routes/chart");
+const chartRoute = require("../routes/chart.js");
+const sequelize = require("../handles/model.js");
 const request = require("supertest");
 const express = require("express");
 const assert = require("node:assert");

@@ -1,5 +1,5 @@
 const debug = require("debug")("handle:storage");
-const sequelize = require("./model");
+const sequelize = require("./model.js");
 const utils = require("node:util");
 
 const { File, Local, Database } = sequelize.models;

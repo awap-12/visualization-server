@@ -3,9 +3,9 @@ const compression = require("compression");
 const logger = require("morgan");
 const path = require("node:path");
 
-const indexRoute = require("./routes/index");
-const fileRoute = require("./routes/file");
-const chartRoute = require("./routes/chart");
+const indexRoute = require("./routes/index.js");
+const fileRoute = require("./routes/file.js");
+const chartRoute = require("./routes/chart.js");
 
 const app = new express();
 

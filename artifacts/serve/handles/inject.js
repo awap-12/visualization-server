@@ -2,7 +2,7 @@ const debug = require("debug")("inject:serve");
 const { parse, join, resolve, sep, posix } = require("node:path");
 const { readdir, stat } = require("node:fs/promises");
 
-const { Chart, ChartFile, File } = require("./model").models;
+const { Chart, ChartFile, File } = require("./model.js").models;
 
 const STATIC_ROOT = resolve(__dirname, "..", "static");
 const STATIC_ROOT_POSIX = STATIC_ROOT.split(sep).join("/");

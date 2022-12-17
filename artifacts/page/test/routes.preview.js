@@ -2,9 +2,9 @@ const previewRoute = require("../routes/preview.js");
 const sequelize = require("../handles/model.js");
 const request = require("supertest");
 const express = require("express");
-const path = require("node:path");
-const fs = require("node:fs");
 const assert = require("node:assert");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const { User, View } = sequelize.models;
 

@@ -1,5 +1,5 @@
 const { DataTypes, Model } = require("sequelize");
-const base36 = require("../../utils/base36");
+const base36 = require("../../utils/base36.js");
 
 const TABLE_NAME_LENGTH = 12;
 
