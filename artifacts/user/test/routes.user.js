@@ -36,7 +36,7 @@ describe("user route test", () => {
                 .expect(500, done);
         });
     });
-    describe("GET /login", () => {
+    describe("POST /login", () => {
         it("should login with correct password", done => {
             agent
                 .post("/login")
