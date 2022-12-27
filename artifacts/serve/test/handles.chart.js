@@ -191,7 +191,7 @@ describe("chart handle test", () => {
                 assert.deepStrictEqual(other, mapping[id]);
             }
 
-            assert.deepStrictEqual(collector, structuredClone(idCache).sort((a, b) => b.localeCompare(a)));
+            assert.deepStrictEqual(collector, [...idCache].sort((a, b) => b.localeCompare(a)));
         });
     });
     describe("findChart test", () => {

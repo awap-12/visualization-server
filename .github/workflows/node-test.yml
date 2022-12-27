@@ -21,7 +21,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -30,6 +30,7 @@ jobs:
           sudo /etc/init.d/mysql start
           mysql -e 'CREATE DATABASE ${{ env.DATABASE_URL }};' -u${{ env.DATABASE_USER }} -p${{ env.DATABASE_PASSWORD }}
           mysql -e 'SHOW DATABASES;' -u${{ env.DATABASE_USER }} -p${{ env.DATABASE_PASSWORD }}
+          mysql -e 'SHOW variables LIKE "port";' -u${{ env.DATABASE_USER }} -p${{ env.DATABASE_PASSWORD }}
 
       - uses: actions/checkout@v3
 
