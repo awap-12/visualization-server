@@ -1,5 +1,5 @@
-const serverConfig = require("server/config/service");
-const Balancer = require("../utils/balancer");
+const serverConfig = require("server/config/service.js");
+const Balancer = require("../utils/balancer.js");
 const workersCache = {}, rulesCache = {};
 
 const { SERVER_HOST: host = "localhost" } = process.env;

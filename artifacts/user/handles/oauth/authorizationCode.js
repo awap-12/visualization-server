@@ -1,4 +1,4 @@
-const { OAuthAuthorizationCode, OAuthClient, User } = require("../model").models;
+const { OAuthAuthorizationCode, OAuthClient, User } = require("../model.js").models;
 
 /**
  * Get authorization code

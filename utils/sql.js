@@ -1,4 +1,4 @@
-const { colors } = require("./style");
+const { colors } = require("./style.js");
 
 const rawSqlKeyWords = ["ADD", "ADD CONSTRAINT", "ALTER", "ALTER COLUMN", "ALTER TABLE", "ALL", "AND", "ANY", "AS",
     "ASC", "BACKUP DATABASE", "BETWEEN", "CASE", "CHECK", "COLUMN", "CONSTRAINT", "CREATE", "CREATE DATABASE",

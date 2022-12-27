@@ -1,7 +1,7 @@
-const assert = require("node:assert");
+const userHandle = require("../handles/user.js");
+const sequelize = require("../handles/model.js");
 const crypto = require("node:crypto");
-const sequelize = require("../handles/model");
-const userHandle = require("../handles/user");
+const assert = require("node:assert");
 
 describe("user handle test", () => {
     const globalUser = { name: `test-name`, password: `test-password` };

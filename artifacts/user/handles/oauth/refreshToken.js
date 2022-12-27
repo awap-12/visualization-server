@@ -1,4 +1,4 @@
-const { OAuthRefreshToken, OAuthClient, User } = require("../model").models;
+const { OAuthRefreshToken, OAuthClient, User } = require("../model.js").models;
 
 /**
  * Get an access token

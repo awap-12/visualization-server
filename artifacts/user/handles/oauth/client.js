@@ -1,4 +1,4 @@
-const { OAuthClient, User } = require("../model").models;
+const { OAuthClient, User } = require("../model.js").models;
 
 /**
  * Get client

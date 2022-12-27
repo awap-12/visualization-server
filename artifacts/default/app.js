@@ -6,14 +6,20 @@ const cluster = require("node:cluster");
 if (cluster.isMain) {
     const mysql = require("mysql2");
 
-    const { dialect, pool, ...databaseConfig }  = require("server/config/database");
-    const instance = require("server/handles/model");
+    const { dialect, ...databaseConfig }  = require("server/config/database.js");
+    const serviceConfig = require("server/config/service.js");
+    const { sequelize } = require("server/handles/models");
 
     const connection = mysql.createConnection({ ...databaseConfig, database: "information_schema" });
 
     connection.query(`create schema if not exists ${databaseConfig.database}`, err => {
         if (!!err) process.exit(err.errno);
-        instance.sync({ force: true });
+
+        Object.keys(serviceConfig).map(service => require(`${service}/handles/model.js`));
+
+        sequelize.registerModels({ associate: true });
+
+        sequelize.sync({ alter: true });
     });
 
     cluster.onEvent(thread.EV_ERROR, (ev, error) => {

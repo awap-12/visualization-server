@@ -1,4 +1,4 @@
-const clusterConfig = require("server/config/service");
+const clusterConfig = require("server/config/service.js");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 

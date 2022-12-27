@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const debug = require("debug")("server");
-const { dialect, pool, ...databaseConfig } = require("server/config/database.js");
+const { dialect, ...databaseConfig } = require("server/config/database.js");
 const sequelize = require("../handles/model.js");
 const mysql = require("mysql2");
 const http = require("node:http");

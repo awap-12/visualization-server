@@ -1,8 +1,8 @@
 const request = require("supertest");
-const sequelize = require("../handles/model");
 const Koa = require("koa");
 const bodyParser = require("koa-bodyparser");
-const oauthRouter = require("../routes/oauth");
+const oauthRouter = require("../routes/oauth.js");
+const sequelize = require("../handles/model.js");
 const assert = require("node:assert");
 
 const { OAuthAccessToken, OAuthClient, User } = sequelize.models;

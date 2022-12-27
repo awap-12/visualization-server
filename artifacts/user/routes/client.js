@@ -1,5 +1,5 @@
 const Router = require("koa-router");
-const clientHandle = require("../handles/oauth/client")
+const clientHandle = require("../handles/oauth/client.js")
 
 const router = new Router({ prefix: "/client" });
 

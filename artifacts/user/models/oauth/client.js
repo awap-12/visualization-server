@@ -1,5 +1,5 @@
 const { DataTypes, Model } = require("sequelize");
-const base62 = require("../../utils/base62");
+const base62 = require("../../utils/base62.js");
 
 const CLIENT_ID_GENERATE_LENGTH = 16;
 
