@@ -49,7 +49,7 @@ async function* collect(root) {
     }
 }
 
-module.exports = async userId => {
+module.exports = async ({ userId }) => {
     const charts = [], chartFiles = [], files = [];
     for (let i = 1; i <= 10; i++) {
         const folderName = `base${`0${i}`.slice(-2)}`, tempFiles = [], tempChartFile = [];

@@ -12,15 +12,18 @@
 const serviceConfig = {
     "page": {
         prefix: "default",
-        maxForks: 1
+        maxForks: 1,
+        version: 1
     },
     "user": {
         prefix: "/api/user",
-        maxForks: 1
+        maxForks: 1,
+        version: 1
     },
     "serve": {
         prefix: "/api/serve",
-        maxForks: 1
+        maxForks: 1,
+        version: 1
     }
 };
 
