@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://github.com/awap-12/visualization-server/</loc>
+         <lastmod>2023-03-03</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/awap-12/visualization-server/design/serve/</loc>
+         <lastmod>2023-03-03</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/awap-12/visualization-server/design/user/</loc>
+         <lastmod>2023-03-03</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/awap-12/visualization-server/test/serve/</loc>
+         <lastmod>2023-03-03</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/awap-12/visualization-server/test/user/</loc>
+         <lastmod>2023-03-03</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+</urlset>
