@@ -4,9 +4,7 @@ The backend server of this project.
 
 # Usage
 
-
-
-# Deploy
+## Deploy
 
 ## Automate by GitHub action
 
@@ -69,3 +67,36 @@ jobs:
   GCP_PROJECT = PROJECT_ID
   GCP_SA_KEY = ACCOUNT_GENERATE_KEY
 ```
+
+## Serving
+
+### Database configuration in Google Cloud
+
+Enable app engine require config file `app.yaml`.
+
+```yaml
+- name: 'Create config file'
+  run: |
+    cat >> app.yaml <<EOL
+    runtime: nodejs18
+    instance_class: F4
+    automatic_scaling:
+      max_instances: 1
+      target_cpu_utilization: 0.8
+      min_pending_latency: 900ms
+      max_concurrent_requests: 50
+    service: ${{ matrix.service }}
+    entrypoint: ${{ matrix.entrypoint }}
+    env_variables:
+      DATABASE_SOCKET_PATH: /cloudsql/${{ secrets.DATABASE_CONNECTION_NAME }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      SERVER_HOST: 0.0.0.0
+      DEBUG: '*,-sequelize:*,-koa:*,-express:*'
+    EOL
+```
+
+`DATABASE_CONNECTION_NAME` could find from `SQL` 
+
+![img.png](assets/sql_instance.png)
+
+`DATABASE_PASSWORD` is your Google SQL database password when you create the database.
